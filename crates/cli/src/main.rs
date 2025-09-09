@@ -12,6 +12,12 @@ mod tui;
 async fn main() -> Result<()> {
     let args = cli::Cli::parse();
 
+    // TODO
+    // - config system
+    // - write logs to file
+    // - setup bitwarden SDK crate
+    // - implement basic TUI
+
     // Setup tracing subscriber
     let subscriber = fmt::Subscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
