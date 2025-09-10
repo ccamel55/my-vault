@@ -21,8 +21,8 @@ impl Tui {
         let terminal = Arc::new(Mutex::new(ratatui::init()));
 
         // Create ratatui execution task
-        let fps_delay = std::time::Duration::from_secs_f64(1.0 / max_fps as f64);
-        let tps_delay = std::time::Duration::from_secs_f64(1.0 / max_tps as f64);
+        let fps_delay = tokio::time::Duration::from_secs_f64(1.0 / max_fps as f64);
+        let tps_delay = tokio::time::Duration::from_secs_f64(1.0 / max_tps as f64);
 
         let task_tracker = TaskTracker::new();
         let cancellation_token = CancellationToken::new();

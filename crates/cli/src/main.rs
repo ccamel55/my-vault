@@ -1,12 +1,17 @@
-use crate::cli::SubCommands;
+use lib::GLOBAL_CONFIG_PATH;
+use lib::tui;
+use lib::{cli, init_tracing_subscriber};
 
 use anyhow::Result;
 use clap::Parser;
-use tracing_subscriber::{EnvFilter, fmt};
 
-mod cli;
-mod constants;
-mod tui;
+mod constants {
+    /// Default FPS
+    pub const DEFAULT_FPS: u16 = 60;
+
+    /// Default TPS
+    pub const DEFAULT_TPS: u16 = 10;
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,19 +23,27 @@ async fn main() -> Result<()> {
     // - setup bitwarden SDK crate
     // - implement basic TUI
 
-    // Setup tracing subscriber
-    let subscriber = fmt::Subscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish();
+    let global_config_path = GLOBAL_CONFIG_PATH.to_path_buf();
+    let global_config_path_exists = global_config_path.exists() && global_config_path.is_dir();
 
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("failed to set global tracing subscriber");
+    init_tracing_subscriber()?;
+
+    tracing::info!("config folder: {}", global_config_path.display());
+    tracing::info!("creating config folder: {}", !global_config_path_exists);
+
+    // Make sure that our config folder exists
+    if !global_config_path_exists {
+        tokio::fs::create_dir(&global_config_path).await?;
+    }
+
+    // Setup our global configs
+    let configs = lib::GlobalConfigs::load().await?;
 
     if let Some(sub_command) = args.sub_command {
         match sub_command {
-            SubCommands::Login { name } => Ok(()),
-            SubCommands::Logout { name } => Ok(()),
-            SubCommands::Select { name } => Ok(()),
+            cli::SubCommands::Login { name } => Ok(()),
+            cli::SubCommands::Logout { name } => Ok(()),
+            cli::SubCommands::Select { name } => Ok(()),
         }
     } else {
         // Create TUI
