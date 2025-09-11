@@ -39,6 +39,26 @@ async fn main() -> Result<()> {
     // Setup our global configs
     let configs = lib::GlobalConfigs::load().await?;
 
+    {
+        let fuck = configs.client.read().await;
+        let poo = fuck.some_value_1.clone();
+
+        tracing::info!("hello: {}", poo.unwrap_or("NONE".to_string()));
+    }
+
+    {
+        let mut shit = configs.client.write().await;
+
+        shit.some_value_1 = None;
+    }
+
+    {
+        let fuck = configs.client.read().await;
+        let poo = fuck.some_value_1.clone();
+
+        tracing::info!("hello: {}", poo.unwrap_or("NONE".to_string()));
+    }
+
     if let Some(sub_command) = args.sub_command {
         match sub_command {
             cli::SubCommands::Login { name } => Ok(()),
