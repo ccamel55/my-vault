@@ -1,9 +1,9 @@
-use lib::GLOBAL_CONFIG_PATH;
 use lib::tui;
 use lib::{cli, init_tracing_subscriber};
 
-use anyhow::Result;
 use clap::Parser;
+use std::sync::Arc;
+use url::Url;
 
 mod constants {
     /// Default FPS
@@ -14,60 +14,59 @@ mod constants {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     let args = cli::Cli::parse();
 
     // TODO
     // - setup bitwarden SDK crate
     // - implement basic TUI
-
-    let global_config_path = GLOBAL_CONFIG_PATH.to_path_buf();
-    let global_config_path_exists = global_config_path.exists() && global_config_path.is_dir();
+    // - make sure cancellation works correctly.
 
     init_tracing_subscriber()?;
 
-    tracing::info!("config folder: {}", global_config_path.display());
-    tracing::info!("creating config folder: {}", !global_config_path_exists);
-
-    // Make sure that our config folder exists
-    if !global_config_path_exists {
-        tokio::fs::create_dir(&global_config_path).await?;
-    }
-
     // Setup our global configs
-    let configs = lib::GlobalConfigs::load().await?;
+    let configs = Arc::new(lib::GlobalConfigs::load().await?);
 
-    {
-        let fuck = configs.client.read().await;
-        let poo = fuck.some_value_1.clone();
+    // Update client URL if needed
+    if let Some(base_url) = args.server {
+        Url::parse(&base_url)?;
 
-        tracing::info!("hello: {}", poo.unwrap_or("NONE".to_string()));
-    }
+        {
+            let mut config_client = configs.client.write().await;
 
-    {
-        let mut shit = configs.client.write().await;
-
-        shit.some_value_1 = None;
-    }
-
-    {
-        let fuck = configs.client.read().await;
-        let poo = fuck.some_value_1.clone();
-
-        tracing::info!("hello: {}", poo.unwrap_or("NONE".to_string()));
-    }
-
-    if let Some(sub_command) = args.sub_command {
-        match sub_command {
-            cli::SubCommands::Login { name } => Ok(()),
-            cli::SubCommands::Logout { name } => Ok(()),
-            cli::SubCommands::Select { name } => Ok(()),
+            config_client.connection.url_api = format!("{base_url}/api");
+            config_client.connection.url_identity = format!("{base_url}/identity");
         }
+
+        configs.try_save().await?;
+    }
+
+    // Create bitwarden client
+    let client = {
+        let config_client = configs.client.read().await.clone();
+
+        tracing::debug!("url api: {}", &config_client.connection.url_api);
+        tracing::debug!("url identity: {}", &config_client.connection.url_api);
+
+        let client_settings = bitwarden_core::ClientSettings {
+            api_url: config_client.connection.url_api,
+            identity_url: config_client.connection.url_identity,
+            user_agent: "Bitwarden CLI Rust".into(),
+            device_type: bitwarden_core::DeviceType::SDK,
+        };
+
+        bitwarden_core::Client::new(Some(client_settings))
+    };
+
+    if let Some(command) = args.command {
+        command.run(configs.clone(), client).await?;
     } else {
         // Create TUI
         let mut tui = tui::Tui::start(constants::DEFAULT_FPS, constants::DEFAULT_TPS)?;
 
         // Shutdown TUI
-        tui.wait().await
-    }
+        tui.wait().await?;
+    };
+
+    Ok(())
 }

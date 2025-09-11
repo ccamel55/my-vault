@@ -1,12 +1,12 @@
+use inquire::error::InquireResult;
 use lazy_static::lazy_static;
 use std::path::PathBuf;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
+use tracing_subscriber::Layer;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{EnvFilter, Layer};
 
 pub mod cli;
 pub mod config;
@@ -34,30 +34,44 @@ lazy_static! {
 /// Global config states
 pub struct GlobalConfigs {
     /// Client config
-    pub client: Arc<RwLock<config::client::LocalClientConfig>>,
+    pub client: RwLock<config::client::LocalClientConfig>,
 }
 
 impl GlobalConfigs {
     /// Create a new global config instance.
     pub async fn load() -> anyhow::Result<Self> {
-        let client = config::client::LocalClientConfig::load(GLOBAL_CONFIG_PATH.as_path(), true)
+        let global_config_path = GLOBAL_CONFIG_PATH.to_path_buf();
+        let global_config_path_exists = global_config_path.exists() && global_config_path.is_dir();
+
+        tracing::debug!("config folder: {}", global_config_path.display());
+        tracing::debug!("creating config folder: {}", !global_config_path_exists);
+
+        // Make sure that our config folder exists
+        if !global_config_path_exists {
+            tokio::fs::create_dir(&global_config_path).await?;
+        }
+
+        let client = config::client::LocalClientConfig::load(&global_config_path, true)
             .await
-            .map(RwLock::new)
-            .map(Arc::new)?;
+            .map(RwLock::new)?;
 
         let result = Self { client };
 
         Ok(result)
     }
+
+    /// Attempt to do a save using `try_read`.
+    pub async fn try_save(&self) -> anyhow::Result<()> {
+        if let Ok(config) = self.client.try_read() {
+            config.save(GLOBAL_CONFIG_PATH.as_path()).await?;
+        }
+
+        Ok(())
+    }
 }
 
 /// Install global tracing subscriber
 pub fn init_tracing_subscriber() -> anyhow::Result<()> {
-    // Default stdout is info, but this can change depending on env vars.
-    let filter_stdout = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
-        .from_env_lossy();
-
     // Create new writer which rolls logs every day.
     let writer_rolling_file = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
@@ -68,7 +82,7 @@ pub fn init_tracing_subscriber() -> anyhow::Result<()> {
     let layer_stdout = tracing_subscriber::fmt::layer()
         .compact()
         .with_writer(std::io::stdout)
-        .and_then(filter_stdout);
+        .with_filter(LevelFilter::INFO);
 
     let layer_logfile = tracing_subscriber::fmt::layer()
         .compact()
@@ -82,4 +96,13 @@ pub fn init_tracing_subscriber() -> anyhow::Result<()> {
         .try_init()?;
 
     Ok(())
+}
+
+/// Use text prompt if value is none
+pub fn unwrap_or_prompt(prompt: &str, value: Option<String>) -> InquireResult<String> {
+    Ok(if let Some(value) = value {
+        value
+    } else {
+        inquire::Text::new(prompt).prompt()?
+    })
 }

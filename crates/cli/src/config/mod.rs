@@ -34,7 +34,7 @@ where
 {
     /// Save the current config.
     pub async fn save(&self, global_config_path: &Path) -> anyhow::Result<()> {
-        tracing::info!("saving config: {}", T::filename());
+        tracing::debug!("saving config: {}", T::filename());
 
         if !global_config_path.exists() || !global_config_path.is_dir() {
             return Err(anyhow::anyhow!(
@@ -54,7 +54,7 @@ where
 
     /// Load the current config from config path.
     pub async fn load(global_config_path: &Path, create_if_missing: bool) -> anyhow::Result<Self> {
-        tracing::info!("loading config: {}", T::filename());
+        tracing::debug!("loading config: {}", T::filename());
 
         if !global_config_path.exists() || !global_config_path.is_dir() {
             return Err(anyhow::anyhow!(
@@ -66,8 +66,8 @@ where
         let config_path = global_config_path.join(T::relative_path());
 
         if !config_path.exists() || !config_path.is_file() {
-            tracing::info!("config does not exist: {}", T::filename());
-            tracing::info!("creating default config: {}", create_if_missing);
+            tracing::debug!("config does not exist: {}", T::filename());
+            tracing::debug!("creating default config: {}", create_if_missing);
 
             let default = Self::default();
 
@@ -94,7 +94,7 @@ where
     T: Default,
 {
     fn default() -> Self {
-        Self { 0: T::default() }
+        Self(T::default())
     }
 }
 
