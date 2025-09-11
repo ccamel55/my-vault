@@ -18,8 +18,6 @@ async fn main() -> Result<()> {
     let args = cli::Cli::parse();
 
     // TODO
-    // - config system
-    // - write logs to file
     // - setup bitwarden SDK crate
     // - implement basic TUI
 
