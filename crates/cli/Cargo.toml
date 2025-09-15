@@ -14,6 +14,8 @@ path = "src/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 bitwarden-core = { workspace = true, features = ["internal"] }
+bitwarden-crypto = { workspace = true }
+bitwarden-encoding = { workspace = true }
 bitwarden-vault = { workspace = true }
 clap = { workspace = true, features = ["derive"]}
 crossterm = { workspace = true, features = ["event-stream"] }

@@ -13,19 +13,28 @@ pub struct UserConfig {
 }
 
 /// Per user specific settings
-#[derive(Clone, Default, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct UserEntryConfig {
-    /// Name for user
-    pub alias: String,
+    /// User id
+    pub user_id: Option<bitwarden_core::UserId>,
 
-    /// Email, password login only
-    pub email: Option<String>,
+    /// User email
+    pub email: String,
 
-    /// Client ID, api login only
-    pub client_id: Option<String>,
+    /// User KDF parameters
+    pub kdf: bitwarden_crypto::Kdf,
 
-    /// Client secret, api login only
-    pub client_secret: Option<String>,
+    /// Base64 encoded device key
+    pub device_key: bitwarden_encoding::B64,
+
+    /// UserKey encrypted with DevicePublicKey
+    pub user_key: bitwarden_crypto::UnsignedSharedKey,
+
+    /// DevicePublicKey encrypted with [UserKey](super::UserKey)
+    pub device_public_key: bitwarden_crypto::EncString,
+
+    /// DevicePrivateKey encrypted with [DeviceKey]
+    pub device_private_key: bitwarden_crypto::EncString,
 }
 
 impl ConfigMetadata for UserConfig {

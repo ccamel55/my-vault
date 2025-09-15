@@ -1,4 +1,5 @@
 mod login;
+mod logout;
 
 use crate::GlobalConfigs;
 
@@ -21,21 +22,37 @@ pub struct Cli {
 pub enum Commands {
     /// Login to an existing account
     Login {
-        #[command(subcommand)]
-        login_type: login::LoginType,
+        /// Alias of existing user login
+        alias: Option<String>,
+
+        #[clap(long, action)]
+        new: bool,
+    },
+
+    /// Log out of an existing frames
+    Logout {
+        /// Alias of existing user login
+        alias: Option<String>,
     },
 }
 
 impl Commands {
     /// Run the given command.
     pub async fn run(
-        &self,
+        self,
         config: Arc<GlobalConfigs>,
         client: bitwarden_core::Client,
     ) -> anyhow::Result<()> {
         match self {
-            Self::Login { login_type } => {
-                login::run_login(config, client, login_type.to_owned()).await?
+            Self::Login { alias, new } => {
+                if new {
+                    login::run_login_new(config, client).await?;
+                } else {
+                    login::run_login_alias(config, client, alias).await?;
+                }
+            }
+            Self::Logout { alias } => {
+                logout::run_logout(config, client, alias).await?;
             }
         };
 
