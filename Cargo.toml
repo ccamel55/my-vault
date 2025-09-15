@@ -20,11 +20,13 @@ dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
 inquire = { version = "0.7.5" }
 lazy_static = { version = "1.5.0" }
+png = { version = "0.18.0" }
 ratatui = { version = "0.29.0" }
 serde = { version = "1.0.219" }
 tracing = { version = "0.1.41" }
 tracing-appender = { version = "0.2.3" }
 tracing-subscriber = { version = "0.3.20" }
+tray-item = { version = "0.10.0", features = ["ksni"] }
 tokio = { version = "1.47.1" }
 tokio-util = { version = "0.7.16" }
 toml = { version = "0.9.5" }

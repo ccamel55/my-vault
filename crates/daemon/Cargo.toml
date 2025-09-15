@@ -1,0 +1,16 @@
+[package]
+name = "daemon"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"]}
+dirs = { workspace = true }
+png = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tray-item = { workspace = true }
+tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
+tokio-util = { workspace = true, features = ["rt"] }
