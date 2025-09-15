@@ -4,6 +4,7 @@ use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 
 pub mod client;
+pub mod user;
 
 /// Config filename trait.
 pub trait ConfigMetadata {

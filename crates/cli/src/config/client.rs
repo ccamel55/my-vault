@@ -7,7 +7,7 @@ use std::path::PathBuf;
 pub type LocalClientConfig = LocalConfig<ClientConfig>;
 
 /// Top level client settings
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Default, Deserialize, Serialize)]
 pub struct ClientConfig {
     pub connection: ConnectionConfig,
 }
@@ -29,14 +29,6 @@ impl ConfigMetadata for ClientConfig {
 
     fn relative_path() -> PathBuf {
         PathBuf::new().join(Self::filename())
-    }
-}
-
-impl Default for ClientConfig {
-    fn default() -> Self {
-        Self {
-            connection: ConnectionConfig::default(),
-        }
     }
 }
 

@@ -35,6 +35,9 @@ lazy_static! {
 pub struct GlobalConfigs {
     /// Client config
     pub client: RwLock<config::client::LocalClientConfig>,
+
+    /// User config
+    pub user: RwLock<config::user::LocalUserConfig>,
 }
 
 impl GlobalConfigs {
@@ -55,7 +58,11 @@ impl GlobalConfigs {
             .await
             .map(RwLock::new)?;
 
-        let result = Self { client };
+        let user = config::user::LocalUserConfig::load(&global_config_path, true)
+            .await
+            .map(RwLock::new)?;
+
+        let result = Self { client, user };
 
         Ok(result)
     }
@@ -63,6 +70,10 @@ impl GlobalConfigs {
     /// Attempt to do a save using `try_read`.
     pub async fn try_save(&self) -> anyhow::Result<()> {
         if let Ok(config) = self.client.try_read() {
+            config.save(GLOBAL_CONFIG_PATH.as_path()).await?;
+        }
+
+        if let Ok(config) = self.user.try_read() {
             config.save(GLOBAL_CONFIG_PATH.as_path()).await?;
         }
 
