@@ -1,5 +1,5 @@
 [package]
-name = "daemon"
+name = "cli"
 version.workspace = true
 edition.workspace = true
 
@@ -8,10 +8,9 @@ shared-core = { path = "../shared-core" }
 shared-types = { path = "../shared-types" }
 
 anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"]}
 interprocess = { workspace = true, features = ["tokio"] }
-png = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-tray-item = { workspace = true }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }

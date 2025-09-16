@@ -5,8 +5,11 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/daemon/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/daemon/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/cli-old/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/cli-old/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-old/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-old/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-types/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
