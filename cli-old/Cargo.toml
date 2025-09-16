@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "cli-old"
 version.workspace = true
 edition.workspace = true
 
