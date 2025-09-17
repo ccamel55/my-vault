@@ -1,5 +1,5 @@
 [package]
-name = "shared-core"
+name = "shared-message"
 version.workspace = true
 edition.workspace = true
 
