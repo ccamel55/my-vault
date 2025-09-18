@@ -17,3 +17,9 @@ pub enum Error {
     #[error("Buffer does not represent a valid message")]
     InvalidBuffer,
 }
+
+impl PartialEq for Error {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}

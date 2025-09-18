@@ -1,6 +1,23 @@
 use shared_message::{Message, MessageCode, message, util};
 
 #[test]
+fn message_compare() {
+    let message_1 = Message::NOP;
+    let message_2 = Message::Shutdown;
+    let message_3 = Message::Example(message::Example::default());
+    let message_4 = Message::Example(message::Example {
+        value_1: 100,
+        ..message::Example::default()
+    });
+
+    assert_eq!(message_1, Message::NOP);
+    assert_eq!(message_2, Message::Shutdown);
+
+    assert_ne!(message_2, message_3);
+    assert_eq!(message_3, message_4);
+}
+
+#[test]
 fn message_encode_decode() {
     let mut buffer_1 = vec![0; message::HEADER_EXPECTED_SIZE as usize + 4];
     let mut buffer_2 = vec![0; message::HEADER_EXPECTED_SIZE as usize + 28];

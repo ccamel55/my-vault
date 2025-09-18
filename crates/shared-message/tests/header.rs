@@ -2,6 +2,23 @@ use shared_message;
 use shared_message::{Error, message, util};
 
 #[test]
+fn error_compare() {
+    let error_1 = Error::BufferTooSmall;
+    let error_2 = Error::BufferCorrupt;
+    let error_3 = Error::DecodeError(bincode::error::DecodeError::LimitExceeded);
+    let error_4 = Error::DecodeError(bincode::error::DecodeError::UnexpectedEnd { additional: 0 });
+    let error_5 = Error::DecodeError(bincode::error::DecodeError::UnexpectedEnd { additional: 1 });
+
+    assert_eq!(error_1, Error::BufferTooSmall);
+    assert_eq!(error_2, Error::BufferCorrupt);
+
+    assert_ne!(error_2, error_3);
+
+    assert_eq!(error_3, error_4);
+    assert_eq!(error_3, error_5);
+}
+
+#[test]
 fn crc32_checksum() {
     const EXPECTED_CHECKSUM: u32 = 2683815467;
 
@@ -42,13 +59,7 @@ fn message_header_encode_too_small() {
     let mut buffer = vec![0; (message::HEADER_EXPECTED_SIZE - 1) as usize];
     let size = util::encode_to_buffer(&header, &mut buffer);
 
-    assert!(size.is_err());
-
-    if let Err(Error::BufferTooSmall) = size {
-        assert!(true)
-    } else {
-        assert!(false)
-    }
+    assert_eq!(size, Err(Error::BufferTooSmall));
 }
 
 #[test]

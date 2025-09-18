@@ -25,6 +25,12 @@ pub enum Message {
     Example2(message::Example2),
 }
 
+impl PartialEq for Message {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
 impl MessageCode for Message {
     fn serialized_size(&self) -> Result<usize, Error> {
         Ok(message::HEADER_EXPECTED_SIZE as usize + util::serialized_size(self)?)
