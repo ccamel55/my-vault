@@ -11,7 +11,7 @@ pub const HEADER_MAGIC_BYTE: [u8; 3] = [42, 57, 52];
 pub const HEADER_EXPECTED_SIZE: u8 = 12;
 
 /// Header for all messages
-#[derive(Debug, Encode, Decode)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct MessageHeader {
     /// Magic bytes that indicate the start of a message.
     pub magic_bytes: [u8; 3],

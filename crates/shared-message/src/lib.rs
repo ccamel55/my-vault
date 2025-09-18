@@ -10,7 +10,7 @@ pub use error::Error;
 pub use traits::MessageCode;
 
 /// Message type
-#[derive(Debug, Decode, Encode)]
+#[derive(Clone, Debug, Decode, Encode)]
 pub enum Message {
     /// Empty message
     NOP,
@@ -20,6 +20,9 @@ pub enum Message {
 
     /// Example Message
     Example(message::Example),
+
+    /// Example Message 2
+    Example2(message::Example2),
 }
 
 impl MessageCode for Message {

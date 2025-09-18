@@ -1,4 +1,4 @@
-use shared_message::{Message, MessageCode, message};
+use shared_message::{Message, MessageCode, message, util};
 
 #[test]
 fn message_encode_decode() {
@@ -67,24 +67,77 @@ fn message_encode_decode() {
 
 #[test]
 fn message_decode_too_small() {
-    // Smaller than header
-    // Smaller than data
+    let mut buffer = vec![0; message::HEADER_EXPECTED_SIZE as usize + 4];
+
+    let data = Message::NOP;
+    let size = data.encode_to_slice(&mut buffer).unwrap();
+
+    let buffer_1 = buffer[0..message::HEADER_EXPECTED_SIZE as usize - 1].to_owned();
+    let buffer_2 = buffer[0..size - 1].to_owned();
+
+    let data_decode_1 = Message::decode_from_slice(&buffer_1);
+    let data_decode_2 = Message::decode_from_slice(&buffer_2);
+
+    assert!(data_decode_1.is_err());
+    assert!(data_decode_2.is_err());
 }
 
 #[test]
 fn message_decode_invalid_data() {
-    // Invalid magic byte
-    // Invalid header size
-}
+    let mut buffer = vec![0; message::HEADER_EXPECTED_SIZE as usize + 4];
 
-#[test]
-fn message_decode_corrupt() {
-    // Checksum wrong
-    // invalid message integer representation
+    let data = Message::NOP;
+    let _size = data.encode_to_slice(&mut buffer).unwrap();
+
+    let (header, _size) = util::decode_from_buffer::<message::MessageHeader>(&buffer).unwrap();
+
+    // Invalid magic byte
+    {
+        let mut header = header.clone();
+        header.magic_bytes = [0, 0, 0];
+
+        util::encode_to_buffer(&header, &mut buffer).unwrap();
+
+        let message = Message::decode_from_slice(&buffer);
+
+        assert!(message.is_err());
+    }
+
+    // Invalid header size
+    {
+        let mut header = header.clone();
+        header.message_size = 69;
+
+        util::encode_to_buffer(&header, &mut buffer).unwrap();
+
+        let message = Message::decode_from_slice(&buffer);
+
+        assert!(message.is_err());
+    }
+
+    // Invalid checksum
+    {
+        let mut header = header.clone();
+        header.checksum = 0;
+
+        util::encode_to_buffer(&header, &mut buffer).unwrap();
+
+        let message = Message::decode_from_slice(&buffer);
+
+        assert!(message.is_err());
+    }
 }
 
 #[test]
 fn message_encode_too_small() {
-    // Smaller than header
-    // Smaller than data
+    let mut buffer_1 = vec![0; message::HEADER_EXPECTED_SIZE as usize - 1];
+    let mut buffer_2 = vec![0; message::HEADER_EXPECTED_SIZE as usize + 4 - 1];
+
+    let data = Message::NOP;
+
+    let data_1 = data.encode_to_slice(&mut buffer_1);
+    let data_2 = data.encode_to_slice(&mut buffer_2);
+
+    assert!(data_1.is_err());
+    assert!(data_2.is_err());
 }
