@@ -1,42 +1,19 @@
-use bincode::{Decode, Encode};
-
 mod error;
-mod traits;
 
 pub mod message;
 pub mod util;
 
 pub use error::Error;
-pub use traits::MessageCode;
+pub use message::{Message, MessageHeader};
 
-/// Message type
-#[derive(Clone, Debug, Decode, Encode)]
-pub enum Message {
-    /// Empty message
-    NOP,
-
-    /// Initiate connection shutdown
-    Shutdown,
-
-    /// Example Message
-    Example(message::Example),
-
-    /// Example Message 2
-    Example2(message::Example2),
-}
-
-impl PartialEq for Message {
-    fn eq(&self, other: &Self) -> bool {
-        std::mem::discriminant(self) == std::mem::discriminant(other)
-    }
-}
-
-impl MessageCode for Message {
-    fn serialized_size(&self) -> Result<usize, Error> {
+impl Message {
+    /// Buffer size required to serialize data into.
+    pub fn serialized_size(&self) -> Result<usize, Error> {
         Ok(message::HEADER_EXPECTED_SIZE as usize + util::serialized_size(self)?)
     }
 
-    fn encode_to_slice(&self, buffer: &mut [u8]) -> Result<usize, Error> {
+    /// Serialize message to binary.
+    pub fn encode_to_slice(&self, buffer: &mut [u8]) -> Result<usize, Error> {
         // Make sure we can store header data
         if buffer.len() < message::HEADER_EXPECTED_SIZE as usize {
             return Err(Error::BufferTooSmall);
@@ -67,7 +44,8 @@ impl MessageCode for Message {
         Ok(message::HEADER_EXPECTED_SIZE as usize + message_size)
     }
 
-    fn decode_from_slice(buffer: &[u8]) -> Result<(Self, usize), Error> {
+    /// Deserialize message from binary.
+    pub fn decode_from_slice(buffer: &[u8]) -> Result<(Self, usize), Error> {
         // Make sure we can store header data
         if buffer.len() < message::HEADER_EXPECTED_SIZE as usize {
             return Err(Error::BufferTooSmall);

@@ -1,4 +1,4 @@
-use shared_message::{Message, MessageCode, message, util};
+use shared_message::{Message, message, util};
 
 #[test]
 fn message_compare() {

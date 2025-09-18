@@ -37,3 +37,25 @@ impl Default for MessageHeader {
         }
     }
 }
+
+/// Message type
+#[derive(Clone, Debug, Decode, Encode)]
+pub enum Message {
+    /// Empty message
+    NOP,
+
+    /// Initiate connection shutdown
+    Shutdown,
+
+    /// Example Message
+    Example(Example),
+
+    /// Example Message 2
+    Example2(Example2),
+}
+
+impl PartialEq for Message {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
