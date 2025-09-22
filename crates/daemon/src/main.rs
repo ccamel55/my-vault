@@ -2,7 +2,7 @@ use futures::prelude::*;
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Listener;
-use shared_core::service::Echo;
+use shared_service::Echo;
 use tarpc::context::Context;
 use tarpc::server::Channel;
 use tokio::io;

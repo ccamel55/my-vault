@@ -1,9 +1,0 @@
-[package]
-name = "shared-message"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-bincode = { workspace = true }
-crc = { workspace = true }
-thiserror = { workspace = true }

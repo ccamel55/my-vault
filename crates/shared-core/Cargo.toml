@@ -4,4 +4,3 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-tarpc = { workspace = true, features = ["serde-transport-bincode"] }

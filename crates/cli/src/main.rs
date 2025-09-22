@@ -30,8 +30,7 @@ async fn connection_handler(
     );
 
     let context = tarpc::context::current();
-    let client =
-        shared_core::service::EchoClient::new(Default::default(), channel_transport).spawn();
+    let client = shared_service::EchoClient::new(Default::default(), channel_transport).spawn();
 
     let result = client.echo(context, String::from("fuck")).await?;
     tracing::warn!("echo: {result}");

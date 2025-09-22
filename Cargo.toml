@@ -10,24 +10,21 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = { version = "1.0.99" }
-bincode = { version = "2.0.1" }
 bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 bitwarden-crypto = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 bitwarden-encoding = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 clap = { version = "4.5.47" }
-crc = { version = "3.3.0" }
 crossterm = { version = "0.29.0" }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
-inquire = { version = "0.7.5" }
+inquire = { version = "0.9.1" }
 interprocess = { version = "2.2.3" }
 lazy_static = { version = "1.5.0" }
 png = { version = "0.18.0" }
 ratatui = { version = "0.29.0" }
 serde = { version = "1.0.219" }
 tarpc = { version = "0.37.0" }
-thiserror = { version = "2.0.16" }
 tracing = { version = "0.1.41" }
 tracing-appender = { version = "0.2.3" }
 tracing-subscriber = { version = "0.3.20" }

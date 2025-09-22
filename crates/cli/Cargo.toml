@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 shared-core = { path = "../shared-core" }
+shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"]}
