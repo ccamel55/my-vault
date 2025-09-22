@@ -1,7 +1,7 @@
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Stream;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
+use tokio_util::codec::LengthDelimitedCodec;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
@@ -20,47 +20,27 @@ async fn socket_stream() -> anyhow::Result<local_socket::tokio::Stream> {
 /// Connection handler
 async fn connection_handler(
     _task_tracker: TaskTracker,
-    cancellation_token: CancellationToken,
+    _cancellation_token: CancellationToken,
     stream: local_socket::tokio::Stream,
 ) -> anyhow::Result<()> {
-    tracing::info!("connection opened");
+    let stream_framed = LengthDelimitedCodec::builder().new_framed(stream);
+    let channel_transport = tarpc::serde_transport::new(
+        stream_framed,
+        tarpc::tokio_serde::formats::Bincode::default(),
+    );
 
-    let (recv, mut send) = stream.split();
-    let mut recv = BufReader::new(recv);
+    let context = tarpc::context::current();
+    let client =
+        shared_core::service::EchoClient::new(Default::default(), channel_transport).spawn();
 
-    // Temporary write buffer
-    // Note: must not clear this buffer as read only works on a sized/initialized buffer.
-    let mut buffer = vec![0; shared_core::LOCAL_SOCKET_BUFFER_SIZE];
+    let result = client.echo(context, String::from("fuck")).await?;
+    tracing::warn!("echo: {result}");
 
-    loop {
-        if cancellation_token.is_cancelled() {
-            break;
-        }
+    let result = client.echo(context, String::from("shit")).await?;
+    tracing::warn!("echo: {result}");
 
-        // Wait a second before doing anything
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-
-        // Send data to the listener
-        if let Err(e) = send.write_all(b"FUCK SHIT BALLS").await {
-            tracing::error!("could not send data: {}", e);
-            break;
-        }
-
-        // Wait for data to come back
-        let length = match recv.read(&mut buffer).await {
-            Ok(0) => break,
-            Ok(x) => x,
-            Err(e) => {
-                tracing::error!("could not receive data: {}", e);
-                break;
-            }
-        };
-
-        let buffer_string = str::from_utf8(&buffer[0..length])?;
-        tracing::info!("received ({}) - {}", length, buffer_string);
-    }
-
-    tracing::info!("connection closed");
+    let result = client.echo(context, String::from("dick")).await?;
+    tracing::warn!("echo: {result}");
 
     Ok(())
 }

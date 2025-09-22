@@ -1,11 +1,28 @@
+use futures::prelude::*;
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Listener;
-use interprocess::local_socket::traits::tokio::Stream;
+use shared_core::service::Echo;
+use tarpc::context::Context;
+use tarpc::server::Channel;
 use tokio::io;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
+use tokio_util::codec::LengthDelimitedCodec;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
+
+#[derive(Clone)]
+struct EchoService;
+
+impl Echo for EchoService {
+    async fn health_check(self, _context: Context) -> () {
+        // EMPTY
+    }
+
+    async fn echo(self, _context: Context, name: String) -> String {
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        format!("hello {name}")
+    }
+}
 
 /// Create system tray for daemon.
 /// Todo: display connection info in system tray
@@ -70,37 +87,16 @@ async fn connection_handler(
     _cancellation_token: CancellationToken,
     stream: local_socket::tokio::Stream,
 ) -> anyhow::Result<()> {
-    tracing::info!("connection opened");
+    let stream_framed = LengthDelimitedCodec::builder().new_framed(stream);
+    let channel_transport = tarpc::serde_transport::new(
+        stream_framed,
+        tarpc::tokio_serde::formats::Bincode::default(),
+    );
 
-    let (recv, mut send) = stream.split();
-    let mut recv = BufReader::new(recv);
-
-    // Temporary write buffer
-    // Note: must not clear this buffer as read only works on a sized/initialized buffer.
-    let mut buffer = vec![0; shared_core::LOCAL_SOCKET_BUFFER_SIZE];
-
-    loop {
-        // Wait for message
-        let length = match recv.read(&mut buffer).await {
-            Ok(0) => break,
-            Ok(x) => x,
-            Err(e) => {
-                tracing::error!("could not receive data: {}", e);
-                break;
-            }
-        };
-
-        let buffer_string = str::from_utf8(&buffer[0..length])?;
-        tracing::info!("received ({}) - {}", length, buffer_string);
-
-        // Wait a second before doing anything
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-
-        // Send that shit straight back because y the fuck not
-        send.write_all(b"FUCK").await?;
-    }
-
-    tracing::info!("connection closed");
+    tarpc::server::BaseChannel::with_defaults(channel_transport)
+        .execute(EchoService.serve())
+        .for_each(|x| x)
+        .await;
 
     Ok(())
 }

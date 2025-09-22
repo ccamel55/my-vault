@@ -7,8 +7,10 @@ edition.workspace = true
 shared-core = { path = "../shared-core" }
 
 anyhow = { workspace = true }
+futures = { workspace = true }
 interprocess = { workspace = true, features = ["async", "tokio"] }
 png = { workspace = true }
+tarpc = { workspace = true, features = ["serde-transport-bincode"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tray-item = { workspace = true, features = ["ksni"] }

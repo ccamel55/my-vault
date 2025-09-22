@@ -26,6 +26,7 @@ lazy_static = { version = "1.5.0" }
 png = { version = "0.18.0" }
 ratatui = { version = "0.29.0" }
 serde = { version = "1.0.219" }
+tarpc = { version = "0.37.0" }
 thiserror = { version = "2.0.16" }
 tracing = { version = "0.1.41" }
 tracing-appender = { version = "0.2.3" }
