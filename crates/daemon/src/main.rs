@@ -103,12 +103,7 @@ async fn connection_handler(
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Temporary tracing subscriber
-    // TODO: replace with propper logging subscriber
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .with_target(false)
-        .init();
+    shared_core::tracing::init_subscriber(shared_core::Client::Daemon)?;
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();

@@ -13,7 +13,6 @@ interprocess = { workspace = true, features = ["async", "tokio"] }
 png = { workspace = true }
 tarpc = { workspace = true, features = ["serde-transport-bincode"] }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tray-item = { workspace = true, features = ["ksni"] }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }

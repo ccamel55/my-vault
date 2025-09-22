@@ -4,3 +4,12 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+anyhow = { workspace = true }
+dirs = { workspace = true }
+lazy_static = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
+toml ={ workspace = true, features = ["serde"] }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }

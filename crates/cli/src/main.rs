@@ -1,6 +1,9 @@
+mod config;
+
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Stream;
+use std::sync::Arc;
 use tokio_util::codec::LengthDelimitedCodec;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
@@ -46,12 +49,10 @@ async fn connection_handler(
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Temporary tracing subscriber
-    // TODO: replace with propper logging subscriber
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .with_target(false)
-        .init();
+    shared_core::tracing::init_subscriber(shared_core::Client::Cli)?;
+
+    // Setup our global configs
+    let configs = Arc::new(config::ConfigsCli::load().await?);
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
@@ -82,6 +83,9 @@ async fn main() -> anyhow::Result<()> {
     // Wait for everything to finish before exiting
     task_tracker.close();
     task_tracker.wait().await;
+
+    // Try save config before we exit.
+    configs.try_save().await?;
 
     Ok(())
 }
