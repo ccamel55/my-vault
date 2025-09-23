@@ -1,8 +1,11 @@
+mod config;
+
 use futures::prelude::*;
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Listener;
 use shared_service::Echo;
+use std::sync::Arc;
 use tarpc::context::Context;
 use tarpc::server::Channel;
 use tokio::io;
@@ -105,6 +108,9 @@ async fn connection_handler(
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber(shared_core::Client::Daemon)?;
 
+    // Setup our global configs
+    let configs = Arc::new(config::ConfigsDaemon::load().await?);
+
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
 
@@ -152,6 +158,9 @@ async fn main() -> anyhow::Result<()> {
     // Wait for everything to finish before exiting
     task_tracker.close();
     task_tracker.wait().await;
+
+    // Try save config before we exit.
+    configs.try_save().await?;
 
     Ok(())
 }

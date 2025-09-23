@@ -15,6 +15,10 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/shared-message/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/shared-message/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/crates/shared-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cli/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-service/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tui/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tui/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

@@ -10,7 +10,6 @@ shared-service = { path = "../shared-service" }
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"]}
 interprocess = { workspace = true, features = ["async", "tokio"] }
-serde = { workspace = true, features = ["derive"] }
 tarpc = { workspace = true, features = ["serde-transport-bincode"] }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-pub type LocalUserConfig = crate::config::LocalConfig<UserConfig>;
+pub type LocalUserConfig = shared_core::config::LocalConfig<UserConfig>;
 
 /// User config
 #[derive(Clone, Default, Deserialize, Serialize)]
@@ -17,7 +17,7 @@ pub struct UserEntryConfig {
     pub email: String,
 }
 
-impl crate::config::ConfigMetadata for UserConfig {
+impl shared_core::config::ConfigMetadata for UserConfig {
     fn filename() -> &'static str {
         "users.toml"
     }

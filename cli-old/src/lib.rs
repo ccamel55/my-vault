@@ -109,11 +109,4 @@ pub fn init_tracing_subscriber() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Use text prompt if value is none
-pub fn unwrap_or_prompt(prompt: &str, value: Option<String>) -> InquireResult<String> {
-    Ok(if let Some(value) = value {
-        value
-    } else {
-        inquire::Text::new(prompt).prompt()?
-    })
-}
+

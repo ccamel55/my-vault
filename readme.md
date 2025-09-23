@@ -18,11 +18,3 @@ Background process which manages the connection and state of local bitwarden vau
 ### CLI
 
 CLI interface for daemon.
-
-### TUI
-
-TUI interface for daemon.
-
-### GUI
-
-Eventually add a GUI as well??

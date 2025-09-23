@@ -1,9 +1,9 @@
-mod config;
+mod command;
 
+use clap::Parser;
 use interprocess::local_socket;
 use interprocess::local_socket::ToNsName;
 use interprocess::local_socket::traits::tokio::Stream;
-use std::sync::Arc;
 use tokio_util::codec::LengthDelimitedCodec;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
@@ -47,12 +47,19 @@ async fn connection_handler(
     Ok(())
 }
 
+/// Bitwarden CLI crab edition
+#[derive(Parser, Clone, Debug)]
+#[command(version, about, long_about = None)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: command::Commands,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber(shared_core::Client::Cli)?;
 
-    // Setup our global configs
-    let configs = Arc::new(config::ConfigsCli::load().await?);
+    let args = Cli::parse();
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
@@ -80,12 +87,12 @@ async fn main() -> anyhow::Result<()> {
         stream,
     ));
 
+    // Execute what ever command is being passed.
+    args.command.run().await?;
+
     // Wait for everything to finish before exiting
     task_tracker.close();
     task_tracker.wait().await;
-
-    // Try save config before we exit.
-    configs.try_save().await?;
 
     Ok(())
 }

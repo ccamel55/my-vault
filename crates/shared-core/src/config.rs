@@ -1,13 +1,7 @@
-mod connection;
-mod user;
-
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
-
-pub use connection::LocalConnectionConfig;
-pub use user::LocalUserConfig;
 
 /// Config filename trait.
 pub trait ConfigMetadata {

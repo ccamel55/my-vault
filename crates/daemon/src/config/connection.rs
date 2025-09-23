@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub type LocalConnectionConfig = crate::config::LocalConfig<ClientConfig>;
+pub type LocalConnectionConfig = shared_core::config::LocalConfig<ClientConfig>;
 
 /// Connection config
 #[derive(Clone, Default, Deserialize, Serialize)]
@@ -19,7 +19,7 @@ pub struct ConnectionConfig {
     pub url_identity: String,
 }
 
-impl crate::config::ConfigMetadata for ClientConfig {
+impl shared_core::config::ConfigMetadata for ClientConfig {
     fn filename() -> &'static str {
         "client.toml"
     }
