@@ -17,13 +17,12 @@ bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev =
 clap = { version = "4.5.47" }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
+hyper-util = { version = "0.1.17" }
 inquire = { version = "0.9.1" }
-interprocess = { version = "2.2.3" }
 lazy_static = { version = "1.5.0" }
 png = { version = "0.18.0" }
 prost = { version = "0.14.1" }
 serde = { version = "1.0.219" }
-tarpc = { version = "0.37.0" }
 tracing = { version = "0.1.41" }
 tracing-appender = { version = "0.2.3" }
 tracing-subscriber = { version = "0.3.20" }
@@ -34,3 +33,4 @@ toml = { version = "0.9.5" }
 tonic = { version = "0.14.2" }
 tonic-prost = { version = "0.14.2" }
 tonic-prost-build = { version = "0.14.2" }
+tower = { version = "0.5.2" }

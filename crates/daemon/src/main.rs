@@ -1,31 +1,14 @@
 mod config;
+mod service;
 
-use futures::prelude::*;
-use interprocess::local_socket;
-use interprocess::local_socket::ToNsName;
-use interprocess::local_socket::traits::tokio::Listener;
-use shared_service::Echo;
+use shared_core::local_socket_path;
+use shared_service::{echo_server, user_server};
 use std::sync::Arc;
-use tarpc::context::Context;
-use tarpc::server::Channel;
-use tokio::io;
-use tokio_util::codec::LengthDelimitedCodec;
+use tokio::net::UnixListener;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
-
-#[derive(Clone)]
-struct EchoService;
-
-impl Echo for EchoService {
-    async fn health_check(self, _context: Context) -> () {
-        // EMPTY
-    }
-
-    async fn echo(self, _context: Context, name: String) -> String {
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        format!("hello {name}")
-    }
-}
+use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
+use tonic::transport::Server;
 
 /// Create system tray for daemon.
 /// Todo: display connection info in system tray
@@ -56,54 +39,6 @@ fn system_tray(cancellation_token: CancellationToken) -> anyhow::Result<tray_ite
     Ok(tray)
 }
 
-/// Setup socket listener
-async fn socket_listener() -> anyhow::Result<local_socket::tokio::Listener> {
-    tracing::info!(
-        "creating socket listener: {}",
-        shared_core::LOCAL_SOCKET_NAME
-    );
-
-    let socket_name =
-        shared_core::LOCAL_SOCKET_NAME.to_ns_name::<local_socket::GenericNamespaced>()?;
-
-    let listener = local_socket::ListenerOptions::new()
-        .name(socket_name)
-        .reclaim_name(true)
-        .create_tokio();
-
-    let listener = match listener {
-        Ok(x) => x,
-        Err(e) => {
-            if e.kind() == io::ErrorKind::AddrInUse {
-                tracing::error!("Could not start socket because socket file already exists.");
-            }
-            return Err(e.into());
-        }
-    };
-
-    Ok(listener)
-}
-
-/// Socker connection handler
-async fn connection_handler(
-    _task_tracker: TaskTracker,
-    _cancellation_token: CancellationToken,
-    stream: local_socket::tokio::Stream,
-) -> anyhow::Result<()> {
-    let stream_framed = LengthDelimitedCodec::builder().new_framed(stream);
-    let channel_transport = tarpc::serde_transport::new(
-        stream_framed,
-        tarpc::tokio_serde::formats::Bincode::default(),
-    );
-
-    tarpc::server::BaseChannel::with_defaults(channel_transport)
-        .execute(EchoService.serve())
-        .for_each(|x| x)
-        .await;
-
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber(shared_core::Client::Daemon)?;
@@ -117,43 +52,25 @@ async fn main() -> anyhow::Result<()> {
     // Create system tray
     system_tray(cancellation_token.clone())?;
 
-    tokio::select! {
-        _ = cancellation_token.cancelled() => {
-            // NOTHING - shutdown was invoked
-        },
-        result = async {
-            // Create unnamed socket listener
-            let listener = socket_listener().await?;
+    let uds_path = local_socket_path();
+    tokio::fs::create_dir_all(uds_path.parent().unwrap()).await?;
 
-            loop {
-                // Handle any errors with socket connection
-                let stream = listener.accept().await?;
+    // Create socket listener
+    let uds = UnixListener::bind(&uds_path)?;
+    let stream = UnixListenerStream::new(uds);
 
-                // Handle new connection
-                // TODO: limit this to only one active connection at a time
-                task_tracker.spawn({
-                    let task_tracker = task_tracker.clone();
-                    let cancellation_token = cancellation_token.child_token();
+    // Create service
+    let service_echo = service::EchoService {};
+    let service_user = service::UserService {};
 
-                    async move {
-                        if let Err(e) = connection_handler(
-                            task_tracker,
-                            cancellation_token,
-                            stream,
-                        ).await {
-                            tracing::error!("could not handle connection: {}", e.to_string())
-                        }
-                    }
-                });
-            }
+    Server::builder()
+        .add_service(echo_server::EchoServer::new(service_echo))
+        .add_service(user_server::UserServer::new(service_user))
+        .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+        .await?;
 
-            // Help infer return type
-            #[allow(unreachable_code)]
-            Ok::<_, anyhow::Error>(())
-        } => {
-            result?;
-        },
-    }
+    // Remove socket after using it
+    tokio::fs::remove_file(&uds_path).await?;
 
     // Wait for everything to finish before exiting
     task_tracker.close();

@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-tarpc = { workspace = true }
+prost = { workspace = true }
 tonic = { workspace = true }
 tonic-prost = { workspace = true }
 

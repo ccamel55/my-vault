@@ -1,51 +1,15 @@
 mod command;
 
 use clap::Parser;
-use interprocess::local_socket;
-use interprocess::local_socket::ToNsName;
-use interprocess::local_socket::traits::tokio::Stream;
-use tokio_util::codec::LengthDelimitedCodec;
+use hyper_util::rt::TokioIo;
+use shared_core::local_socket_path;
+use shared_service::{EchoRequest, echo_client};
+use tokio::net::UnixStream;
+use tokio::select;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
-
-/// Create socket stream
-async fn socket_stream() -> anyhow::Result<local_socket::tokio::Stream> {
-    tracing::info!("creating socket stream: {}", shared_core::LOCAL_SOCKET_NAME);
-
-    let socket_name =
-        shared_core::LOCAL_SOCKET_NAME.to_ns_name::<local_socket::GenericNamespaced>()?;
-
-    local_socket::tokio::Stream::connect(socket_name)
-        .await
-        .map_err(anyhow::Error::from)
-}
-
-/// Connection handler
-async fn connection_handler(
-    _task_tracker: TaskTracker,
-    _cancellation_token: CancellationToken,
-    stream: local_socket::tokio::Stream,
-) -> anyhow::Result<()> {
-    let stream_framed = LengthDelimitedCodec::builder().new_framed(stream);
-    let channel_transport = tarpc::serde_transport::new(
-        stream_framed,
-        tarpc::tokio_serde::formats::Bincode::default(),
-    );
-
-    let context = tarpc::context::current();
-    let client = shared_service::EchoClient::new(Default::default(), channel_transport).spawn();
-
-    let result = client.echo(context, String::from("fuck")).await?;
-    tracing::warn!("echo: {result}");
-
-    let result = client.echo(context, String::from("shit")).await?;
-    tracing::warn!("echo: {result}");
-
-    let result = client.echo(context, String::from("dick")).await?;
-    tracing::warn!("echo: {result}");
-
-    Ok(())
-}
+use tonic::transport::{Endpoint, Uri};
+use tower::service_fn;
 
 /// Bitwarden CLI crab edition
 #[derive(Parser, Clone, Debug)]
@@ -59,40 +23,56 @@ pub struct Cli {
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber(shared_core::Client::Cli)?;
 
-    let args = Cli::parse();
+    // let args = Cli::parse();
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
 
     // Create socket stream
-    let stream = socket_stream().await?;
+    // Note: Uri is ignored because we are using our own connector
+    let channel = Endpoint::try_from("http://[::]:50051")?
+        .connect_with_connector(service_fn(|_: Uri| async {
+            let uds_path = local_socket_path();
+            let stream = UnixStream::connect(uds_path).await?;
 
-    // Setup listener for ctrl-c to gracefully shutdown
-    tokio::task::spawn({
+            Ok::<_, std::io::Error>(TokioIo::new(stream))
+        }))
+        .await?;
+
+    let request = EchoRequest {
+        message: "fuck".into(),
+    };
+
+    let mut client = echo_client::EchoClient::new(channel);
+
+    task_tracker.spawn({
         let cancellation_token = cancellation_token.clone();
 
         async move {
-            tokio::signal::ctrl_c()
-                .await
-                .expect("could not register signal");
+            select! {
+                _ = cancellation_token.cancelled() => {
 
-            cancellation_token.cancel();
+                },
+                response = client.echo(tonic::Request::new(request)) => {
+                    let response = response?.into_inner();
+                    tracing::info!("response: {}", response.message);
+                }
+            }
+
+            // Help infer return type
+            Ok::<_, anyhow::Error>(())
         }
     });
 
-    // Task responsible for handling socket communication
-    task_tracker.spawn(connection_handler(
-        task_tracker.clone(),
-        cancellation_token.child_token(),
-        stream,
-    ));
-
     // Execute what ever command is being passed.
-    args.command.run().await?;
+    // args.command.run().await?;
 
     // Wait for everything to finish before exiting
     task_tracker.close();
     task_tracker.wait().await;
+
+    let uds_path = local_socket_path();
+    tokio::fs::remove_file(uds_path).await?;
 
     Ok(())
 }

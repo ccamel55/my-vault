@@ -13,11 +13,12 @@ bitwarden-crypto = { workspace = true }
 bitwarden-encoding = { workspace = true }
 bitwarden-vault = { workspace = true }
 futures = { workspace = true }
-interprocess = { workspace = true, features = ["async", "tokio"] }
 png = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-tarpc = { workspace = true, features = ["serde-transport-bincode"] }
 tracing = { workspace = true }
 tray-item = { workspace = true, features = ["ksni"] }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }
+prost = { workspace = true }
+tonic = { workspace = true }
+tonic-prost = { workspace = true }
