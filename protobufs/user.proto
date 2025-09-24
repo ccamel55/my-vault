@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package bw.echo;
+
+message LoginRequest {
+
+}
+
+message LoginResponse {
+
+}
+
+message LogoutRequest {
+
+}
+
+message LogoutResponse {
+
+}
+
+service User {
+  // Login
+  rpc Login(LoginRequest)
+      returns (LoginResponse);
+
+  // Logout
+  rpc Logout(LogoutRequest)
+      returns (LogoutResponse);
+}
