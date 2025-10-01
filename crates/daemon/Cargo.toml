@@ -8,13 +8,10 @@ shared-core = { path = "../shared-core" }
 shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
-bitwarden-core = { workspace = true }
-bitwarden-crypto = { workspace = true }
-bitwarden-encoding = { workspace = true }
-bitwarden-vault = { workspace = true }
 futures = { workspace = true }
 png = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tracing = { workspace = true }
 tray-item = { workspace = true, features = ["ksni"] }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }

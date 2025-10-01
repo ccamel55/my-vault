@@ -1,18 +1,13 @@
 mod connection;
-mod user;
 
 use tokio::sync::RwLock;
 
 pub use connection::LocalConnectionConfig;
-pub use user::LocalUserConfig;
 
 /// Daemon Configs
 pub struct ConfigsDaemon {
     /// Connection config
     pub connection: RwLock<LocalConnectionConfig>,
-
-    /// User config
-    pub user: RwLock<LocalUserConfig>,
 }
 
 impl ConfigsDaemon {
@@ -33,11 +28,7 @@ impl ConfigsDaemon {
             .await
             .map(RwLock::new)?;
 
-        let user = LocalUserConfig::load(&global_config_path, true)
-            .await
-            .map(RwLock::new)?;
-
-        let result = Self { connection, user };
+        let result = Self { connection };
 
         Ok(result)
     }
@@ -45,12 +36,6 @@ impl ConfigsDaemon {
     /// Attempt to do a save using `try_read`.
     pub async fn try_save(&self) -> anyhow::Result<()> {
         if let Ok(config) = self.connection.try_read() {
-            config
-                .save(shared_core::GLOBAL_CONFIG_PATH.as_path())
-                .await?;
-        }
-
-        if let Ok(config) = self.user.try_read() {
             config
                 .save(shared_core::GLOBAL_CONFIG_PATH.as_path())
                 .await?;

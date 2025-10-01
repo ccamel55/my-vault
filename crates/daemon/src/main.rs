@@ -1,8 +1,9 @@
 mod config;
+mod database;
 mod service;
 
 use shared_core::local_socket_path;
-use shared_service::{echo_server, user_server};
+use shared_service::{client_server, user_server};
 use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio_util::sync::CancellationToken;
@@ -60,11 +61,11 @@ async fn main() -> anyhow::Result<()> {
     let stream = UnixListenerStream::new(uds);
 
     // Create service
-    let service_echo = service::EchoService {};
+    let service_echo = service::ClientService {};
     let service_user = service::UserService {};
 
     Server::builder()
-        .add_service(echo_server::EchoServer::new(service_echo))
+        .add_service(client_server::ClientServer::new(service_echo))
         .add_service(user_server::UserServer::new(service_user))
         .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
         .await?;

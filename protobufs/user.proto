@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bw.echo;
+package bw.user;
 
 message LoginRequest {
 

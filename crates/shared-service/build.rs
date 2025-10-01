@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // We have to manually include the protobuf files we want to use.
     // todo: search through directory and add all protobuf files automatically
     let files = vec![
-        include_path.join("echo.proto"),
+        include_path.join("client.proto"),
         include_path.join("user.proto"),
     ];
 

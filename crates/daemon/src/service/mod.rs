@@ -1,5 +1,5 @@
-mod echo;
+mod client;
 mod user;
 
-pub use echo::*;
+pub use client::*;
 pub use user::*;
