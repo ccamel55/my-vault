@@ -44,8 +44,9 @@ fn system_tray(cancellation_token: CancellationToken) -> anyhow::Result<tray_ite
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber(shared_core::Client::Daemon)?;
 
-    // Setup our global configs
+    // Setup configs and database.
     let configs = Arc::new(config::ConfigsDaemon::load().await?);
+    let database = Arc::new(database::Database::load().await?);
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
@@ -55,6 +56,8 @@ async fn main() -> anyhow::Result<()> {
 
     let uds_path = local_socket_path();
     tokio::fs::create_dir_all(uds_path.parent().unwrap()).await?;
+
+    tracing::info!("uds socket: {}", uds_path.display());
 
     // Create socket listener
     let uds = UnixListener::bind(&uds_path)?;

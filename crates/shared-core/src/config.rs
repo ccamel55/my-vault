@@ -32,7 +32,7 @@ where
 {
     /// Save the current config.
     pub async fn save(&self, global_config_path: &Path) -> anyhow::Result<()> {
-        tracing::debug!("saving config: {}", T::filename());
+        tracing::info!("saving config: {}", T::filename());
 
         if !global_config_path.exists() || !global_config_path.is_dir() {
             return Err(anyhow::anyhow!(
@@ -52,7 +52,7 @@ where
 
     /// Load the current config from config path.
     pub async fn load(global_config_path: &Path, create_if_missing: bool) -> anyhow::Result<Self> {
-        tracing::debug!("loading config: {}", T::filename());
+        tracing::info!("loading config: {}", T::filename());
 
         if !global_config_path.exists() || !global_config_path.is_dir() {
             return Err(anyhow::anyhow!(
