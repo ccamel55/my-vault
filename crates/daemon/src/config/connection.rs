@@ -4,13 +4,13 @@ use std::path::PathBuf;
 pub type LocalConnectionConfig = shared_core::config::LocalConfig<ClientConfig>;
 
 /// Connection config
-#[derive(Clone, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct ClientConfig {
     pub connection: ConnectionConfig,
 }
 
 /// Client connection config
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConnectionConfig {
     /// Web endpoint for api server
     pub url_api: String,

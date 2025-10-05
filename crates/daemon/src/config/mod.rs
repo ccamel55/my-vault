@@ -5,6 +5,7 @@ use tokio::sync::RwLock;
 pub use connection::LocalConnectionConfig;
 
 /// Daemon Configs
+#[derive(Debug)]
 pub struct ConfigsDaemon {
     /// Connection config
     pub connection: RwLock<LocalConnectionConfig>,

@@ -1,8 +1,19 @@
+use crate::client::DaemonClient;
+
 use shared_service::{LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, user_server};
+use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
-pub struct UserService;
+pub struct UserService {
+    client: Arc<DaemonClient>,
+}
+
+impl UserService {
+    pub fn new(client: Arc<DaemonClient>) -> anyhow::Result<Self> {
+        Ok(Self { client })
+    }
+}
 
 #[tonic::async_trait]
 impl user_server::User for UserService {

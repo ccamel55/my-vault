@@ -1,5 +1,6 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 
@@ -82,6 +83,18 @@ where
             .or(Err(anyhow::anyhow!("could not deserialize toml config")))?;
 
         Ok(Self(data))
+    }
+}
+
+impl<T> Debug for LocalConfig<T>
+where
+    T: DeserializeOwned + Serialize,
+    T: ConfigMetadata,
+    T: Default,
+    T: Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        T::fmt(self, f)
     }
 }
 

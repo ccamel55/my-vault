@@ -1,3 +1,5 @@
+pub mod model;
+
 use sqlx::sqlite;
 use std::str::FromStr;
 
