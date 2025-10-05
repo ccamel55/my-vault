@@ -54,7 +54,13 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let client = Arc::new(DaemonClient::start().await?);
+    let client = Arc::new(
+        DaemonClient::start(
+            config::ConfigsDaemon::load().await?,
+            database::Database::load().await?,
+        )
+        .await?,
+    );
 
     // Create system tray
     system_tray(cancellation_token.clone())?;
@@ -69,6 +75,7 @@ async fn main() -> anyhow::Result<()> {
     let stream = UnixListenerStream::new(uds);
 
     // Create actual RPC services
+    // TODO: create health check service
     let service_echo = service::ClientService::new(client.clone())?;
     let service_user = service::UserService::new(client.clone())?;
 

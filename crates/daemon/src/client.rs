@@ -11,11 +11,10 @@ pub struct DaemonClient {
 
 impl DaemonClient {
     /// Create an instance of the client.
-    pub async fn start() -> anyhow::Result<Self> {
-        // Setup configs and database.
-        let config = config::ConfigsDaemon::load().await?;
-        let database = database::Database::load().await?;
-
+    pub async fn start(
+        config: config::ConfigsDaemon,
+        database: database::Database,
+    ) -> anyhow::Result<Self> {
         Ok(Self {
             time_start: time::Instant::now(),
             config,
@@ -28,5 +27,20 @@ impl DaemonClient {
         self.config.try_save().await?;
 
         Ok(())
+    }
+
+    /// Get time daemon was started.
+    pub fn get_time_started(&self) -> &time::Instant {
+        &self.time_start
+    }
+
+    /// Get current config.
+    pub fn get_config(&self) -> &config::ConfigsDaemon {
+        &self.config
+    }
+
+    /// Get current datbase.
+    pub fn get_database(&self) -> &database::Database {
+        &self.database
     }
 }

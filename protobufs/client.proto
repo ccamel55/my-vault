@@ -2,20 +2,27 @@ syntax = "proto3";
 
 package bw.client;
 
-message InfoRequest {
-
-}
+import "google/protobuf/empty.proto";
 
 message InfoResponse {
   string url_api = 1;
   string url_identity = 2;
 
   // How long the daemon has been running for in seconds.
-  uint32 uptime_seconds = 3;
+  uint64 uptime_seconds = 3;
+}
+
+message SetConnectionUrlsRequest {
+  optional string url_api = 1;
+  optional string url_identity = 2;
 }
 
 service Client {
   // Invoked to retrieve metadata about the daemon.
-  rpc Info(InfoRequest)
+  rpc Info(google.protobuf.Empty)
       returns (InfoResponse);
+
+  // Set connection URLs.
+  rpc SetConnectionUrls(SetConnectionUrlsRequest)
+      returns (google.protobuf.Empty);
 }
