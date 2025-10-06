@@ -7,22 +7,14 @@ mod system_tray;
 use crate::client::DaemonClient;
 use crate::system_tray::system_tray;
 
-use futures::StreamExt;
 use shared_core::local_socket_path;
 use shared_service::{client_server, user_server};
-use std::ffi::c_int;
 use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
 use tonic::transport::Server;
-
-const SIGNALS: &[c_int] = &[
-    signal_hook::consts::SIGINT,
-    signal_hook::consts::SIGQUIT,
-    signal_hook::consts::SIGTERM,
-];
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -31,35 +23,18 @@ async fn main() -> anyhow::Result<()> {
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
 
-    // Add a signal handler to catch all cases where the program
-    // will be shut down.
-    let mut signal = signal_hook_tokio::Signals::new(SIGNALS)?;
-    let signal_handle = signal.handle();
-
-    task_tracker.spawn({
-        let cancellation_token = cancellation_token.clone();
-        async move {
-            while let Some(signal) = signal.next().await {
-                match signal {
-                    signal_hook::consts::SIGINT
-                    | signal_hook::consts::SIGQUIT
-                    | signal_hook::consts::SIGTERM => {
-                        // Invoke the cancellation token.
-                        // This will start the normal shutdown process that all shutdowns do.
-                        cancellation_token.cancel();
-                    }
-                    _ => unreachable!(),
-                }
-            }
-        }
-    });
+    // Install signal handler to listen for cancellation.
+    let signal_handle = shared_core::signal::listen_for_cancellation(
+        task_tracker.clone(),
+        cancellation_token.clone(),
+    )?;
 
     let client = Arc::new(
         DaemonClient::start(
             config::ConfigsDaemon::load().await?,
             database::Database::load().await?,
         )
-        .await?,
+        .await,
     );
 
     // Create system tray

@@ -11,15 +11,12 @@ pub struct DaemonClient {
 
 impl DaemonClient {
     /// Create an instance of the client.
-    pub async fn start(
-        config: config::ConfigsDaemon,
-        database: database::Database,
-    ) -> anyhow::Result<Self> {
-        Ok(Self {
+    pub async fn start(config: config::ConfigsDaemon, database: database::Database) -> Self {
+        Self {
             time_start: time::Instant::now(),
             config,
             database,
-        })
+        }
     }
 
     /// Try to save any client changes.

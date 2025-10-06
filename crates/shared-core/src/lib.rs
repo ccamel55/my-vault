@@ -1,6 +1,7 @@
 pub mod config;
 pub mod constants;
 pub mod input;
+pub mod signal;
 pub mod tracing;
 
 use std::path::PathBuf;

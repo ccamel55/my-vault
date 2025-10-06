@@ -9,9 +9,8 @@ shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"]}
-hyper-util = { workspace = true, features = ["tokio"] }
+thiserror = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }
 tonic = { workspace = true }
-tower = { workspace = true, features = ["tokio"] }

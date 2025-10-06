@@ -6,10 +6,14 @@ edition.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 dirs = { workspace = true }
+futures = { workspace = true }
 inquire = { workspace = true }
 lazy_static = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+signal-hook = { workspace = true }
+signal-hook-tokio = { workspace = true, features = ["futures-v0_3"] }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
+tokio-util = { workspace = true, features = ["rt"] }
 toml = { workspace = true, features = ["serde"] }
 tracing = { workspace = true }
 tracing-appender = { workspace = true }
