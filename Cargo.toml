@@ -15,6 +15,7 @@ anyhow = { version = "1.0.99" }
 #bitwarden-encoding = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 #bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 clap = { version = "4.5.47" }
+console = { version = "0.16.1" }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
 inquire = { version = "0.9.1" }

@@ -2,6 +2,8 @@ mod config;
 mod info;
 
 use crate::client::CliClient;
+use crate::error::Error;
+
 use clap::{Subcommand, ValueEnum};
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
@@ -24,26 +26,8 @@ pub enum Commands {
     /// Info about daemon
     Info,
 
-    /// Modify daemon configuration
-    Config,
-
-    /// Login to a user
-    Login,
-
-    /// Log out current user
-    Logout,
-
-    /// Lock current user
-    Lock,
-
-    /// Sync data between local and server
-    Sync,
-
-    /// List available objects of a type
-    List { item_type: ListType, id: String },
-
-    /// Get value for a given type
-    Get { item_type: GetType },
+    /// Modify configuration
+    Config(config::Args),
 }
 
 impl Commands {
@@ -53,21 +37,10 @@ impl Commands {
         _task_tracker: TaskTracker,
         _cancellation_token: CancellationToken,
         client: Arc<CliClient>,
-    ) -> anyhow::Result<()> {
+    ) -> Result<(), Error> {
         match self {
             Self::Info => info::run_cmd(client).await?,
-            Self::Config => config::run_cmd(client).await?,
-            Self::Login => {}
-            Self::Logout => {}
-            Self::Lock => {}
-            Self::Sync => {}
-            Self::List { item_type, id } => {
-                let _item_type = item_type;
-                let _id = id;
-            }
-            Self::Get { item_type } => {
-                let _item_type = item_type;
-            }
+            Self::Config(args) => config::run_cmd(client, args).await?,
         };
 
         Ok(())

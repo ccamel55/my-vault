@@ -7,8 +7,8 @@ edition.workspace = true
 shared-core = { path = "../shared-core" }
 shared-service = { path = "../shared-service" }
 
-anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"]}
+console = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }

@@ -14,10 +14,18 @@ pub fn init_subscriber(client: Client) -> anyhow::Result<()> {
         .filename_suffix("log")
         .build(GLOBAL_CACHE_PATH.as_path().join(client.sub_folder()))?;
 
-    let layer_stdout = tracing_subscriber::fmt::layer()
-        .compact()
-        .with_writer(std::io::stdout)
-        .with_filter(LevelFilter::INFO);
+    // Only write to stdout if we are not the CLI client.
+    // The CLI client uses a prettier console writer.
+    let layer_stdout = if client != Client::Cli {
+        Some(
+            tracing_subscriber::fmt::layer()
+                .compact()
+                .with_writer(std::io::stdout)
+                .with_filter(LevelFilter::INFO),
+        )
+    } else {
+        None
+    };
 
     let layer_logfile = tracing_subscriber::fmt::layer()
         .compact()

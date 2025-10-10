@@ -1,5 +1,6 @@
 mod client;
 mod command;
+mod error;
 
 use crate::client::CliClient;
 use std::sync::Arc;
@@ -17,7 +18,7 @@ pub struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     shared_core::tracing::init_subscriber(shared_core::Client::Cli)?;
 
     let task_tracker = TaskTracker::new();
@@ -33,13 +34,21 @@ async fn main() -> anyhow::Result<()> {
     let client = Arc::new(CliClient::new(shared_core::local_socket_path()));
 
     // Execute what ever command is being passed.
-    args.command
+    if let Err(e) = args
+        .command
         .run(
             task_tracker.clone(),
             cancellation_token.clone(),
             client.clone(),
         )
-        .await?;
+        .await
+    {
+        // Print out error.
+        // TODO: handle this better with better error types and write to log
+        client
+            .terminal()
+            .write_line(&console::style(e).red().to_string())?;
+    }
 
     // Close signal stream
     signal_handle.close();

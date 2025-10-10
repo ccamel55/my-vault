@@ -1,24 +1,22 @@
-use std::path::PathBuf;
-use thiserror::Error;
-use tonic::transport::{Channel, Endpoint};
+use crate::error::Error;
 
-/// Client error
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("connection error - {0}")]
-    Connection(String),
-}
+use std::path::PathBuf;
+use tonic::transport::{Channel, Endpoint};
 
 /// Holds information about current cli client.
 #[derive(Debug)]
 pub struct CliClient {
     uds_path: PathBuf,
+    terminal: console::Term,
 }
 
 impl CliClient {
     /// Create new instance of CLI Client
     pub fn new(uds_path: PathBuf) -> Self {
-        Self { uds_path }
+        Self {
+            uds_path,
+            terminal: console::Term::stdout(),
+        }
     }
 
     /// Get channel connection, creating a connection if none.
@@ -40,5 +38,10 @@ impl CliClient {
             .connect()
             .await
             .map_err(|e| Error::Connection(e.to_string()))
+    }
+
+    /// Get terminal handle.
+    pub fn terminal(&self) -> &console::Term {
+        &self.terminal
     }
 }
