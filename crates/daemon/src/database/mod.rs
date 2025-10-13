@@ -2,7 +2,7 @@ use sqlx::sqlite;
 use std::str::FromStr;
 
 /// Name of database file for daemon.
-const DAEMON_DATABASE_FILE_NAME: &str = "daemon.sqlite";
+const DAEMON_DATABASE_FILE_NAME: &str = "daemon.sqlite3";
 
 #[derive(Debug)]
 pub struct Database {
@@ -13,21 +13,9 @@ impl Database {
     /// Load database instance.
     /// This will create a new local database if none is found.
     pub async fn load() -> anyhow::Result<Self> {
-        let global_database_path = shared_core::GLOBAL_CONFIG_PATH.to_path_buf();
-        let global_database_path_exists =
-            global_database_path.exists() && global_database_path.is_dir();
-
-        tracing::debug!("database folder: {}", global_database_path.display());
-        tracing::debug!("creating database folder: {}", !global_database_path_exists);
-
-        // Make sure that our database folder exists
-        if !global_database_path_exists {
-            tokio::fs::create_dir(&global_database_path).await?;
-        }
-
         let sqlite_file_path = format!(
             "sqlite://{}",
-            global_database_path
+            shared_core::GLOBAL_CONFIG_PATH
                 .join(DAEMON_DATABASE_FILE_NAME)
                 .display()
         );

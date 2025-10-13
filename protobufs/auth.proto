@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package vault.auth;
+
+message LoginRequest {
+  /// Email used during registration.
+  string email = 1;
+
+  /// Password hash
+  string password_hash = 2;
+}
+
+message LoginResponse {
+  /// Auth JWT
+  string token_auth = 1;
+
+  /// Refresh JWT
+  string token_refresh = 2;
+}
+
+message RefreshRequest {
+  string token_refresh = 2;
+}
+
+message RefreshResponse {
+
+}
+
+message RegisterRequest {
+  string name = 1;
+  string email = 2;
+  string password_hash = 3;
+}
+
+message RegisterResponse {
+  string token_auth = 1;
+  string token_refresh = 2;
+}
+
+service Auth {
+  // Login and generate new token
+  rpc Login(LoginRequest)
+      returns (LoginResponse);
+
+  // Refresh existing token
+  rpc Refresh(RefreshRequest)
+      returns (RefreshResponse);
+
+  // Register new new user and generate token
+  rpc Register(RegisterRequest)
+      returns (RegisterResponse);
+}

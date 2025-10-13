@@ -1,22 +1,25 @@
 use crate::client::DaemonClient;
 
-use shared_service::{LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, user_server};
+use shared_service::{
+    LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, RegisterRequest,
+    RegisterResponse, auth_server,
+};
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug, Clone)]
-pub struct UserService {
+pub struct AuthService {
     client: Arc<DaemonClient>,
 }
 
-impl UserService {
+impl AuthService {
     pub fn new(client: Arc<DaemonClient>) -> anyhow::Result<Self> {
         Ok(Self { client })
     }
 }
 
 #[tonic::async_trait]
-impl user_server::User for UserService {
+impl auth_server::Auth for AuthService {
     #[tracing::instrument]
     async fn login(
         &self,
@@ -26,10 +29,17 @@ impl user_server::User for UserService {
     }
 
     #[tracing::instrument]
-    async fn logout(
+    async fn refresh(
         &self,
-        _request: Request<LogoutRequest>,
-    ) -> Result<Response<LogoutResponse>, Status> {
+        _request: Request<RefreshRequest>,
+    ) -> Result<Response<RefreshResponse>, Status> {
+        todo!()
+    }
+
+    async fn register(
+        &self,
+        _request: Request<RegisterRequest>,
+    ) -> Result<Response<RegisterResponse>, Status> {
         todo!()
     }
 }

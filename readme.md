@@ -16,11 +16,12 @@ Too many password managers.
 
 ### Todo
 
-- auth 
+- jwt auth
 - encrypted sqlite
-- rpc reflection 
-- rpc health check
-- client for testing
+- config system
+- hashed password from client to server
+- hookup database
 - unit tests
+- client for testing
 - integration tests
 - remote sqlite database

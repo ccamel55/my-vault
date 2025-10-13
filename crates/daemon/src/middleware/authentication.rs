@@ -1,14 +1,19 @@
+use crate::client;
+
+use std::sync::Arc;
 use tonic::Status;
 use tonic::body::Body;
 use tonic::codegen::http::Request;
 
 #[derive(Debug, Clone)]
-pub struct Authentication;
+pub struct Authentication {
+    client: Arc<client::DaemonClient>,
+}
 
 impl Authentication {
     /// Create new authentication middleware instance.
-    pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {})
+    pub fn new(client: Arc<client::DaemonClient>) -> anyhow::Result<Self> {
+        Ok(Self { client })
     }
 }
 

@@ -28,6 +28,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     shared_core::tracing::init_subscriber()?;
+    shared_core::create_global_paths().await?;
 
     let args = Args::parse();
 
@@ -41,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
         cancellation_token.clone(),
     )?;
 
-    let client = Arc::new(DaemonClient::start(database::Database::load().await?).await);
+    let client = Arc::new(DaemonClient::start(database::Database::load().await?).await?);
 
     system_tray(cancellation_token.clone())?;
 

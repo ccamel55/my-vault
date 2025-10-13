@@ -10,7 +10,6 @@ shared-service = { path = "../shared-service" }
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 png = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tracing = { workspace = true }
 tray-item = { workspace = true, features = ["ksni"] }
