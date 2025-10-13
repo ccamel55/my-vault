@@ -13,6 +13,10 @@ pub async fn create_services(
     let service_client = client::ClientService::new(client.clone())?;
     let service_user = user::UserService::new(client.clone())?;
 
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(shared_service::FILE_DESCRIPTOR_SET)
+        .build_v1alpha()?;
+
     let (health_reporter, health_service) = tonic_health::server::health_reporter();
 
     health_reporter
@@ -24,6 +28,7 @@ pub async fn create_services(
         .await;
 
     let routes = tonic::service::RoutesBuilder::default()
+        .add_service(reflection_service)
         .add_service(health_service)
         .add_service(tonic_middleware::InterceptorFor::new(
             client_server::ClientServer::new(service_client),
