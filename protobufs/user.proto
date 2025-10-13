@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bw.user;
+package vault.user;
 
 message LoginRequest {
 

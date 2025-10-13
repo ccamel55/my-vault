@@ -1,15 +1,12 @@
 syntax = "proto3";
 
-package bw.client;
+package vault.client;
 
 import "google/protobuf/empty.proto";
 
 message InfoResponse {
-  string url_api = 1;
-  string url_identity = 2;
-
   // How long the daemon has been running for in seconds.
-  uint64 uptime_seconds = 3;
+  uint64 uptime_seconds = 1;
 }
 
 service Client {

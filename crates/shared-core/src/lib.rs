@@ -1,6 +1,4 @@
-pub mod config;
 pub mod constants;
-pub mod input;
 pub mod signal;
 pub mod tracing;
 
@@ -26,23 +24,5 @@ lazy_static::lazy_static! {
 pub fn local_socket_path() -> PathBuf {
     PathBuf::from("/tmp")
         .join("tonic")
-        .join("bitwarden-rs-daemon.sock")
-}
-
-/// Client type
-#[derive(PartialEq)]
-pub enum Client {
-    Cli,
-    Daemon,
-}
-
-impl Client {
-    /// Get client subfolder name
-    pub fn sub_folder(&self) -> PathBuf {
-        match self {
-            Self::Cli => "cli",
-            Self::Daemon => "daemon",
-        }
-        .into()
-    }
+        .join("my-vault-daemon.sock")
 }

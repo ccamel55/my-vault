@@ -4,7 +4,7 @@ use shared_service::{LoginRequest, LoginResponse, LogoutRequest, LogoutResponse,
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserService {
     client: Arc<DaemonClient>,
 }
@@ -17,6 +17,7 @@ impl UserService {
 
 #[tonic::async_trait]
 impl user_server::User for UserService {
+    #[tracing::instrument]
     async fn login(
         &self,
         _request: Request<LoginRequest>,
@@ -24,6 +25,7 @@ impl user_server::User for UserService {
         todo!()
     }
 
+    #[tracing::instrument]
     async fn logout(
         &self,
         _request: Request<LogoutRequest>,

@@ -1,64 +1,116 @@
 mod client;
-mod config;
 mod database;
+mod middleware;
 mod service;
 mod system_tray;
+mod view;
 
 use crate::client::DaemonClient;
 use crate::system_tray::system_tray;
 
+use clap::Parser;
 use shared_core::local_socket_path;
-use shared_service::{client_server, user_server};
 use std::sync::Arc;
-use tokio::net::UnixListener;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
-use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
-use tonic::transport::Server;
 
+/// My Vault daemon service.
+#[derive(clap::Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Address to server TCP connection.
+    /// If none and on a supported platform, a socket will be used instead.
+    #[arg(short, long, default_value = Some("0.0.0.0:10001".into()))]
+    tcp_address: Option<String>,
+}
+
+//noinspection DuplicatedCode
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    shared_core::tracing::init_subscriber(shared_core::Client::Daemon)?;
+    shared_core::tracing::init_subscriber()?;
+
+    let args = Args::parse();
 
     let task_tracker = TaskTracker::new();
     let cancellation_token = CancellationToken::new();
 
     // Install signal handler to listen for cancellation.
+    // This is extremely important as some things rely on dependable `Drop` invocation.
     let signal_handle = shared_core::signal::listen_for_cancellation(
         task_tracker.clone(),
         cancellation_token.clone(),
     )?;
 
-    let client = Arc::new(
-        DaemonClient::start(
-            config::ConfigsDaemon::load().await?,
-            database::Database::load().await?,
-        )
-        .await,
-    );
+    let client = Arc::new(DaemonClient::start(database::Database::load().await?).await);
 
-    // Create system tray
     system_tray(cancellation_token.clone())?;
 
-    // Create UDS socket for accepting messages from client.s
-    let uds_socket_path = local_socket_path();
-    tokio::fs::create_dir_all(&uds_socket_path.parent().unwrap()).await?;
+    let close_fn;
 
-    tracing::info!("uds socket: {}", &uds_socket_path.display());
+    // Start serving our service
+    match args.tcp_address {
+        Some(tcp_address) => {
+            // Tcp requires no cleanup
+            close_fn = None;
 
-    let uds = UnixListener::bind(&uds_socket_path)?;
-    let stream = UnixListenerStream::new(uds);
+            // Create tcp listener stream
+            tracing::info!("tcp address: {}", &tcp_address);
 
-    // Create actual RPC services
-    // TODO: create health check service
-    let service_echo = service::ClientService::new(client.clone())?;
-    let service_user = service::UserService::new(client.clone())?;
+            let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
+            let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
 
-    Server::builder()
-        .add_service(client_server::ClientServer::new(service_echo))
-        .add_service(user_server::UserServer::new(service_user))
-        .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
-        .await?;
+            tonic::transport::Server::builder()
+                .add_routes(service::create_services(client).await?)
+                .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+                .await?;
+        }
+        None => {
+            #[cfg(unix)]
+            {
+                let uds_socket_path = local_socket_path();
+                tokio::fs::create_dir_all(&uds_socket_path.parent().unwrap()).await?;
+
+                // Remove socket after using it otherwise we will error on startup
+                // next time run the daemon.
+                close_fn = Some({
+                    let uds_socket_path = uds_socket_path.clone();
+
+                    async move {
+                        match tokio::fs::try_exists(&uds_socket_path).await {
+                            Ok(exists) => {
+                                tracing::debug!("does uds socket exist: {exists}");
+                                if let Err(e) = tokio::fs::remove_file(&uds_socket_path).await {
+                                    tracing::warn!("could delete socket: {e}");
+                                }
+                            }
+                            Err(e) => {
+                                tracing::warn!(
+                                    "io error for socket path {} - {e}",
+                                    &uds_socket_path.display(),
+                                )
+                            }
+                        };
+                    }
+                });
+
+                // Create unix listener stream
+                tracing::info!("uds socket: {}", &uds_socket_path.display());
+
+                let uds = tokio::net::UnixListener::bind(&uds_socket_path)?;
+                let stream = tonic::codegen::tokio_stream::wrappers::UnixListenerStream::new(uds);
+
+                tonic::transport::Server::builder()
+                    .add_routes(service::create_services(client).await?)
+                    .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+                    .await?;
+            }
+
+            #[cfg(not(unix))]
+            {
+                panic!("non unix platforms only support tcp")
+            }
+        }
+    }
 
     // Close signal stream
     signal_handle.close();
@@ -72,26 +124,8 @@ async fn main() -> anyhow::Result<()> {
     //            removing resources still being used.
     //
 
-    // Remove socket after using it otherwise we will error on startup
-    // next time run the daemon.
-    match tokio::fs::try_exists(&uds_socket_path).await {
-        Ok(exists) => {
-            tracing::debug!("does uds socket exist: {exists}");
-            if let Err(e) = tokio::fs::remove_file(&uds_socket_path).await {
-                tracing::warn!("could delete socket: {e}");
-            }
-        }
-        Err(e) => {
-            tracing::warn!(
-                "io error for socket path {} - {e}",
-                &uds_socket_path.display(),
-            )
-        }
-    }
-
-    // Try to write back client data before exiting.
-    if let Err(e) = client.try_save().await {
-        tracing::warn!("could not save client data: {e}");
+    if let Some(close_fn) = close_fn {
+        close_fn.await;
     }
 
     Ok(())

@@ -1,4 +1,6 @@
-# bitwarden-cli-rs
+# My Vault 
+
+Too many password managers. 
 
 ### References
 
@@ -12,14 +14,13 @@
 - `protobuf`
 - `protobuf-devel`
 
-## Design - TODO
+### Todo
 
-Goal: provide a background service which can interface with bitwarden. 
-
-### Daemon  
-
-Background process which manages the connection and state of local bitwarden vault. 
-
-### CLI
-
-CLI interface for daemon.
+- auth 
+- encrypted sqlite
+- rpc reflection 
+- rpc health check
+- client for testing
+- unit tests
+- integration tests
+- remote sqlite database

@@ -10,15 +10,9 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = { version = "1.0.99" }
-#bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-#bitwarden-crypto = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-#bitwarden-encoding = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-#bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
 clap = { version = "4.5.47" }
-console = { version = "0.16.1" }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
-inquire = { version = "0.9.1" }
 lazy_static = { version = "1.5.0" }
 png = { version = "0.18.0" }
 prost = { version = "0.14.1" }
@@ -35,5 +29,8 @@ tokio = { version = "1.47.1" }
 tokio-util = { version = "0.7.16" }
 toml = { version = "0.9.5" }
 tonic = { version = "0.14.2" }
+tonic-health = { version = "0.14.2" }
+tonic-middleware = { version = "0.4.0" }
 tonic-prost = { version = "0.14.2" }
 tonic-prost-build = { version = "0.14.2" }
+tonic-reflection = { version = "0.14.2" }

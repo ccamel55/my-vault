@@ -8,6 +8,7 @@ shared-core = { path = "../shared-core" }
 shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
 png = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
@@ -16,5 +17,9 @@ tray-item = { workspace = true, features = ["ksni"] }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }
 prost = { workspace = true }
+thiserror = { workspace = true }
 tonic = { workspace = true }
+tonic-health = { workspace = true }
+tonic-middleware = { workspace = true }
 tonic-prost = { workspace = true }
+tonic-reflection = { workspace = true }

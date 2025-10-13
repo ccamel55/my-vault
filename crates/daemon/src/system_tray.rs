@@ -17,9 +17,7 @@ pub fn system_tray(cancellation_token: CancellationToken) -> anyhow::Result<tray
         width: reader.info().width as i32,
     };
 
-    let mut tray = tray_item::TrayItem::new("Bitwarden RS", icon)?;
-
-    tray.add_label("Bitwarden RS daemon")?;
+    let mut tray = tray_item::TrayItem::new("My Vault", icon)?;
 
     tray.add_menu_item("Quit", move || {
         cancellation_token.cancel();
