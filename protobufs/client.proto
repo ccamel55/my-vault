@@ -12,17 +12,8 @@ message InfoResponse {
   uint64 uptime_seconds = 3;
 }
 
-message SetConnectionUrlsRequest {
-  optional string url_api = 1;
-  optional string url_identity = 2;
-}
-
 service Client {
   // Invoked to retrieve metadata about the daemon.
   rpc Info(google.protobuf.Empty)
       returns (InfoResponse);
-
-  // Set connection URLs.
-  rpc SetConnectionUrls(SetConnectionUrlsRequest)
-      returns (google.protobuf.Empty);
 }
