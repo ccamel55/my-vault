@@ -5,7 +5,7 @@ CREATE TABLE users (
     password_hash       TEXT NOT NULL,
     first_name          VARCHAR(255) NOT NULL,
     last_name           VARCHAR(255) NOT NULL,
-    last_updated        TIMESTAMP NOT NULL,
+    last_updated        TIMESTAMP,
 
     PRIMARY KEY (uuid)
 );

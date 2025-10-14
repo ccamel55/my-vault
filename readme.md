@@ -17,9 +17,10 @@ Too many password managers.
 ### Todo
 
 - jwt auth
+- swap anyhow to defined errors
 - encrypted sqlite
 - config system
-- hashed password from client to server
+- hashed password from client to server (argon 2)
 - hookup database
 - unit tests
 - client for testing

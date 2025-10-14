@@ -1,5 +1,6 @@
 mod client;
 mod database;
+mod error;
 mod middleware;
 mod service;
 mod system_tray;

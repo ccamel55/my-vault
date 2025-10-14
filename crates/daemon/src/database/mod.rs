@@ -32,16 +32,34 @@ impl Database {
         // Perform migration to ensure that our database is always upto date.
         sqlx::migrate!().run(&sqlite_pool).await?;
 
-        // let _ = sqlx::query(
-        //     "INSERT INTO users (uuid, name, email, password_hash) VALUES ($1, $2, $3, $4);",
-        // )
-        // .bind("jeff".as_bytes())
-        // .bind("jeff")
-        // .bind("jeffcool@gmail.com")
-        // .bind("jeff".as_bytes())
-        // .execute(&sqlite_pool)
-        // .await?;
+        let _ = sqlx::query(
+            "INSERT INTO users (uuid, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5);",
+        )
+            .bind("jeff".as_bytes())
+            .bind("jeffcool@gmail.com")
+            .bind("jeff")
+            .bind("jeff".as_bytes())
+            .bind("fat".as_bytes())
+            .execute(&sqlite_pool)
+            .await?;
 
         Ok(Self { sqlite_pool })
     }
+
+    // /// Create new database entry
+    // pub async fn create<T>(&self, table_name: &str, data_map: T) -> Result<T, crate::error::Error>
+    // where
+    //     T: serde::ser::Serialize + serde::de::DeserializeOwned,
+    //     T: for<'a> sqlx::FromRow<'a, sqlite::SqliteRow> + Unpin + Send,
+    // {
+    // }
+    //
+    // /// Read from database.
+    // pub async fn read() {}
+    //
+    // /// Update new database entry
+    // pub async fn update() {}
+    //
+    // /// Delete a database entry
+    // pub async fn delete() {}
 }
