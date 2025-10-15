@@ -11,11 +11,19 @@ Too many password managers.
 
 ### Requirements
 
+### Fedora
+
 - `protobuf`
 - `protobuf-devel`
 
+### MacOS
+
+- `dbuf`
+- `protobuf`
+
 ### Todo
 
+- swap tray item to tray icon from tauri
 - jwt auth
 - swap anyhow to defined errors
 - encrypted sqlite

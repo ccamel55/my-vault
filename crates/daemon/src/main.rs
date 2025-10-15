@@ -22,7 +22,10 @@ struct Args {
     /// Address to server TCP connection.
     /// If none and on a supported platform, a socket will be used instead.
     #[arg(short, long, default_value = Some("0.0.0.0:10001".into()))]
-    tcp_address: Option<String>,
+    tcp_address: String,
+
+    #[arg(short, long, action)]
+    unix_socket: bool,
 }
 
 //noinspection DuplicatedCode
@@ -45,73 +48,72 @@ async fn main() -> anyhow::Result<()> {
 
     let client = Arc::new(DaemonClient::start(database::Database::load().await?).await?);
 
-    system_tray(cancellation_token.clone())?;
+    // system_tray(cancellation_token.clone())?;
 
     let close_fn;
 
     // Start serving our service
-    match args.tcp_address {
-        Some(tcp_address) => {
-            // Tcp requires no cleanup
-            close_fn = None;
+    if args.unix_socket {
+        #[cfg(unix)]
+        {
+            let uds_socket_path = local_socket_path();
+            tokio::fs::create_dir_all(&uds_socket_path.parent().unwrap()).await?;
 
-            // Create tcp listener stream
-            tracing::info!("tcp address: {}", &tcp_address);
+            // Remove socket after using it otherwise we will error on startup
+            // next time run the daemon.
+            close_fn = Some({
+                let uds_socket_path = uds_socket_path.clone();
 
-            let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
-            let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
+                async move {
+                    match tokio::fs::try_exists(&uds_socket_path).await {
+                        Ok(exists) => {
+                            tracing::debug!("does uds socket exist: {exists}");
+                            if let Err(e) = tokio::fs::remove_file(&uds_socket_path).await {
+                                tracing::warn!("could delete socket: {e}");
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(
+                                "io error for socket path {} - {e}",
+                                &uds_socket_path.display(),
+                            )
+                        }
+                    };
+                }
+            });
+
+            // Create unix listener stream
+            tracing::info!("uds socket: {}", &uds_socket_path.display());
+
+            let uds = tokio::net::UnixListener::bind(&uds_socket_path)?;
+            let stream = tonic::codegen::tokio_stream::wrappers::UnixListenerStream::new(uds);
 
             tonic::transport::Server::builder()
                 .add_routes(service::create_services(client).await?)
                 .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
                 .await?;
         }
-        None => {
-            #[cfg(unix)]
-            {
-                let uds_socket_path = local_socket_path();
-                tokio::fs::create_dir_all(&uds_socket_path.parent().unwrap()).await?;
 
-                // Remove socket after using it otherwise we will error on startup
-                // next time run the daemon.
-                close_fn = Some({
-                    let uds_socket_path = uds_socket_path.clone();
-
-                    async move {
-                        match tokio::fs::try_exists(&uds_socket_path).await {
-                            Ok(exists) => {
-                                tracing::debug!("does uds socket exist: {exists}");
-                                if let Err(e) = tokio::fs::remove_file(&uds_socket_path).await {
-                                    tracing::warn!("could delete socket: {e}");
-                                }
-                            }
-                            Err(e) => {
-                                tracing::warn!(
-                                    "io error for socket path {} - {e}",
-                                    &uds_socket_path.display(),
-                                )
-                            }
-                        };
-                    }
-                });
-
-                // Create unix listener stream
-                tracing::info!("uds socket: {}", &uds_socket_path.display());
-
-                let uds = tokio::net::UnixListener::bind(&uds_socket_path)?;
-                let stream = tonic::codegen::tokio_stream::wrappers::UnixListenerStream::new(uds);
-
-                tonic::transport::Server::builder()
-                    .add_routes(service::create_services(client).await?)
-                    .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
-                    .await?;
-            }
-
-            #[cfg(not(unix))]
-            {
-                panic!("non unix platforms only support tcp")
-            }
+        #[cfg(not(unix))]
+        {
+            panic!("non unix platforms only support tcp")
         }
+    } else {
+        let tcp_address = args.tcp_address;
+
+        // Tcp requires no cleanup
+        close_fn = None;
+
+        // Create tcp listener stream
+        tracing::info!("tcp address: {}", &tcp_address);
+
+        let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
+        let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
+
+        tonic::transport::Server::builder()
+            .add_routes(service::create_services(client).await?)
+            .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+            .await?;
     }
 
     // Close signal stream
