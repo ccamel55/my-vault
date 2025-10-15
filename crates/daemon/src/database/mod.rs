@@ -41,14 +41,3 @@ impl shared_core::database::PoolProvider for Database {
         &self.sqlite_pool
     }
 }
-
-// let _ = sqlx::query(
-//     "INSERT INTO users (uuid, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5);",
-// )
-//     .bind("jeff".as_bytes())
-//     .bind("jeffcool@gmail.com")
-//     .bind("jeff")
-//     .bind("jeff".as_bytes())
-//     .bind("fat".as_bytes())
-//     .execute(&sqlite_pool)
-//     .await?;
