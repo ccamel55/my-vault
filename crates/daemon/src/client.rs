@@ -15,7 +15,7 @@ impl DaemonClient {
     /// Create an instance of the client.
     pub async fn start(database: database::Database) -> anyhow::Result<Self> {
         Ok(Self {
-            jwt: crypt::JwtFactory::new(constants::JWT_ISSUER.into()).await?,
+            jwt: crypt::JwtFactory::new(constants::JWT_ISSUER).await?,
             time_start: time::Instant::now(),
             database,
         })

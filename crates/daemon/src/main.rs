@@ -1,4 +1,5 @@
 mod client;
+mod controller;
 mod database;
 mod error;
 mod middleware;
