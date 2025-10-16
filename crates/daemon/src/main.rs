@@ -45,11 +45,6 @@ async fn main() -> anyhow::Result<()> {
 
     let client = Arc::new(DaemonClient::start().await?);
 
-    // Perform migration to ensure that our database is always upto date.
-    sqlx::migrate!()
-        .run(client.get_database().get_pool())
-        .await?;
-
     let close_fn;
 
     // Start serving our service

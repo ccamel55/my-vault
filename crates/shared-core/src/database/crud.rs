@@ -7,8 +7,8 @@ pub trait TableName {
 }
 
 /// Create new database entry
-pub async fn create<D, N, T>(
-    database: super::Database<D>,
+pub async fn create<N, D, T>(
+    database: &super::Database<D>,
     data: T,
 ) -> Result<T, crate::error::Error>
 where
@@ -33,12 +33,18 @@ where
         .collect::<Vec<_>>()
         .join(", ");
 
+    let returning = crate::serde::struct_fields::<T>()
+        .iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+
     let query = format!(
         "INSERT INTO {} ({}) VALUES ({}) RETURNING {}",
         N::NAME,
         &keys,
         &values,
-        &keys
+        &returning,
     );
 
     let result = sqlx::query_as(&query)
