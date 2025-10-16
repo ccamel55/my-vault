@@ -1,20 +1,26 @@
 use crate::database;
 
-use shared_core::{constants, crypt};
+use shared_core::crypt;
 
 /// Holds information about current daemon client.
 #[derive(Debug)]
 pub struct DaemonClient {
-    jwt: crypt::JwtFactory,
+    jwt: crypt::JwtFactory<Self>,
     time_start: chrono::DateTime<chrono::Utc>,
     database: database::Database,
+}
+
+impl crypt::JwtFactoryMetadata for DaemonClient {
+    const RSA_PEM_PRIVATE: &'static str = "rsa.pem";
+
+    const ISSUER: &'static str = "my-vault-service";
 }
 
 impl DaemonClient {
     /// Create an instance of the client.
     pub async fn start(database: database::Database) -> anyhow::Result<Self> {
         Ok(Self {
-            jwt: crypt::JwtFactory::new(constants::JWT_ISSUER).await?,
+            jwt: crypt::JwtFactory::new().await?,
             time_start: chrono::Utc::now(),
             database,
         })

@@ -1,8 +1,109 @@
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+use validator::Validate;
+
+/// User row entry
+#[derive(Debug, serde::Serialize, serde::Deserialize, sqlx::FromRow, validator::Validate)]
 pub struct User {
     pub uuid: uuid::Uuid,
+    #[validate(email)]
     pub email: String,
     pub password_hash: String,
+    #[validate(length(min = 2, max = 255))]
     pub first_name: String,
+    #[validate(length(min = 2, max = 255))]
     pub last_name: String,
+    pub last_updated: Option<chrono::NaiveDateTime>,
+}
+
+impl User {
+    pub fn new<A, B, C, D>(
+        email: A,
+        password_hash: B,
+        first_name: C,
+        last_name: D,
+    ) -> Result<Self, validator::ValidationErrors>
+    where
+        A: ToString,
+        B: ToString,
+        C: ToString,
+        D: ToString,
+    {
+        let res = User {
+            uuid: uuid::Uuid::new_v4(),
+            email: email.to_string(),
+            password_hash: password_hash.to_string(),
+            first_name: first_name.to_string(),
+            last_name: last_name.to_string(),
+            last_updated: None,
+        };
+
+        res.validate()?;
+
+        Ok(res)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::view::User;
+
+    #[tokio::test]
+    async fn new_user() {
+        let res_ok = User::new(
+            "hello@mail.com",
+            "123456",
+            &"a".repeat(255),
+            &"b".repeat(255),
+        );
+
+        assert!(res_ok.is_ok());
+
+        let res_invalid_email = User::new("hello.com", "123456", "a".repeat(255), "b".repeat(255));
+
+        assert!(res_invalid_email.is_err());
+
+        let res_invalid_email_err = res_invalid_email.unwrap_err();
+        let res_invalid_email_err = res_invalid_email_err.field_errors();
+
+        assert!(res_invalid_email_err.contains_key("email"));
+
+        let res_fn_too_short =
+            User::new("hello@mail.com", "123456", "a".repeat(1), "b".repeat(255));
+
+        assert!(res_fn_too_short.is_err());
+
+        let res_fn_too_short_err = res_fn_too_short.unwrap_err();
+        let res_fn_too_short_err = res_fn_too_short_err.field_errors();
+
+        assert!(res_fn_too_short_err.contains_key("first_name"));
+
+        let res_fn_too_long =
+            User::new("hello@mail.com", "123456", "a".repeat(256), "b".repeat(255));
+
+        assert!(res_fn_too_long.is_err());
+
+        let res_fn_too_long_err = res_fn_too_long.unwrap_err();
+        let res_fn_too_long_err = res_fn_too_long_err.field_errors();
+
+        assert!(res_fn_too_long_err.contains_key("first_name"));
+
+        let res_ln_too_short =
+            User::new("hello@mail.com", "123456", "a".repeat(255), "b".repeat(1));
+
+        assert!(res_ln_too_short.is_err());
+
+        let res_ln_too_short_err = res_ln_too_short.unwrap_err();
+        let res_ln_too_short_err = res_ln_too_short_err.field_errors();
+
+        assert!(res_ln_too_short_err.contains_key("last_name"));
+
+        let res_ln_too_long =
+            User::new("hello@mail.com", "123456", "a".repeat(255), "b".repeat(256));
+
+        assert!(res_ln_too_long.is_err());
+
+        let res_ln_too_long_err = res_ln_too_long.unwrap_err();
+        let res_ln_too_long_err = res_ln_too_long_err.field_errors();
+
+        assert!(res_ln_too_long_err.contains_key("last_name"));
+    }
 }

@@ -7,13 +7,13 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 /// Install global tracing subscriber
-pub fn init_subscriber() -> Result<(), crate::error::Error> {
+pub fn init_subscriber(log_name: &str) -> Result<(), crate::error::Error> {
     // Create new writer which rolls logs every day.
     let writer_rolling_file = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_prefix("lib")
         .filename_suffix("log")
-        .build(GLOBAL_CACHE_PATH.as_path().join("daemon"))
+        .build(GLOBAL_CACHE_PATH.as_path().join(log_name))
         .map_err(|e| crate::error::Error::LogFile(e.to_string()))?;
 
     // Only write to stdout if we are not the CLI client.

@@ -8,7 +8,8 @@ mod view;
 use crate::client::DaemonClient;
 
 use clap::Parser;
-use shared_core::local_socket_path;
+use shared_core::constants;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
@@ -29,7 +30,7 @@ struct Args {
 //noinspection DuplicatedCode
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    shared_core::tracing::init_subscriber()?;
+    shared_core::tracing::init_subscriber("daemon")?;
     shared_core::create_global_paths().await?;
 
     let args = Args::parse();
@@ -52,7 +53,10 @@ async fn main() -> anyhow::Result<()> {
     if args.unix_socket {
         #[cfg(unix)]
         {
-            let uds_socket_path = local_socket_path();
+            let uds_socket_path = PathBuf::from("/tmp")
+                .join(constants::FOLDER_NAME)
+                .join("daemon.sock");
+
             tokio::fs::create_dir_all(&uds_socket_path.parent().unwrap()).await?;
 
             // Remove socket after using it otherwise we will error on startup

@@ -23,6 +23,7 @@ Too many password managers.
 
 ### Todo
 
+- update crate features
 - jwt auth
 - swap anyhow to defined errors
 - encrypted sqlite
@@ -32,4 +33,5 @@ Too many password managers.
 - unit tests
 - client for testing
 - integration tests
-- remote sqlite database
+- remote database
+- // https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs

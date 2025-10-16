@@ -23,13 +23,6 @@ lazy_static::lazy_static! {
     };
 }
 
-/// Local IPC socket name
-pub fn local_socket_path() -> PathBuf {
-    PathBuf::from("/tmp")
-        .join("tonic")
-        .join("my-vault-daemon.sock")
-}
-
 /// Create folders if they don't exist yet
 pub async fn create_global_paths() -> Result<(), tokio::io::Error> {
     let global_config_path = crate::GLOBAL_CONFIG_PATH.to_path_buf();
