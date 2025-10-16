@@ -8,13 +8,13 @@ shared-core = { path = "../shared-core" }
 shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
-chrono = { workspace = true, features = ["serde"] }
-clap = { workspace = true, features = ["derive"] }
-serde = { workspace = true, features = ["derive"] }
-sqlx = { workspace = true, features = ["runtime-tokio", "sqlite", "chrono", "json", "uuid",] }
+chrono = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
 tracing = { workspace = true }
-tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
-tokio-util = { workspace = true, features = ["rt"] }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
 prost = { workspace = true }
 thiserror = { workspace = true }
 tonic = { workspace = true }
@@ -22,5 +22,5 @@ tonic-health = { workspace = true }
 tonic-middleware = { workspace = true }
 tonic-prost = { workspace = true }
 tonic-reflection = { workspace = true }
-uuid = { workspace = true, features = ["v4", "serde"] }
-validator = { workspace = true, features = ["derive"] }
+uuid = { workspace = true }
+validator = { workspace = true }

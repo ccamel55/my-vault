@@ -23,7 +23,6 @@ Too many password managers.
 
 ### Todo
 
-- update crate features
 - jwt auth
 - swap anyhow to defined errors
 - encrypted sqlite

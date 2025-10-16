@@ -10,34 +10,34 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = { version = "1.0.99" }
-chrono = { version = "0.4.42" }
-clap = { version = "4.5.47" }
+chrono = { version = "0.4.42", features = ["serde"] }
+clap = { version = "4.5.47", features = ["derive"] }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
-jsonwebtoken = { version = "10.0.0" }
+jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
 lazy_static = { version = "1.5.0" }
 prost = { version = "0.14.1" }
 rand = { version = "=0.8.5" }
 rsa = { version = "=0.9.8" }
-serde = { version = "1.0.219" }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = { version = "1.0.145" }
 signal-hook = { version = "0.3.18" }
-signal-hook-tokio = { version = "0.3.1" }
-sqlx = { version = "0.8.6" }
+signal-hook-tokio = { version = "0.3.1", features = ["futures-v0_3"] }
+sqlx = { version = "0.8.6",  features = ["runtime-tokio", "sqlite", "chrono", "json", "uuid"] }
 thiserror = { version = "2.0.17" }
-tracing = { version = "0.1.41" }
-tracing-appender = { version = "0.2.3" }
-tracing-subscriber = { version = "0.3.20" }
-tokio = { version = "1.47.1" }
-tokio-util = { version = "0.7.16" }
+tokio = { version = "1.47.1", features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
+tokio-util = { version = "0.7.16", features = ["rt"] }
 tonic = { version = "0.14.2" }
 tonic-health = { version = "0.14.2" }
 tonic-middleware = { version = "0.4.0" }
 tonic-prost = { version = "0.14.2" }
 tonic-prost-build = { version = "0.14.2" }
 tonic-reflection = { version = "0.14.2" }
-uuid = { version = "1.18.1" }
-validator = { version = "0.20.0" }
+tracing = { version = "0.1.41" }
+tracing-appender = { version = "0.2.3" }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+uuid = { version = "1.18.1", features = ["v4", "serde"] }
+validator = { version = "0.20.0", features = ["derive"] }
 
 [profile.dev]
 opt-level = 3
