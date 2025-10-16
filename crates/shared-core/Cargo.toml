@@ -4,7 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-anyhow = { workspace = true }
 chrono = { workspace = true }
 dirs = { workspace = true }
 futures = { workspace = true }
@@ -16,7 +15,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 signal-hook = { workspace = true }
 signal-hook-tokio = { workspace = true, features = ["futures-v0_3"] }
-sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite", "chrono", "json", "uuid",] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }

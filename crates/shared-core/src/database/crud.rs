@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use super::{PoolProvider, TableName};
 
 /// Create new database entry
-pub async fn create<N, P, T>(pool_provider: &P, data: T) -> Result<T, sqlx::Error>
+pub async fn create<N, P, T>(pool_provider: &P, data: T) -> Result<T, crate::error::Error>
 where
     N: TableName,
     P: PoolProvider,
@@ -37,7 +37,8 @@ where
 
     let result = sqlx::query_as(&query)
         .fetch_one(pool_provider.get_pool())
-        .await?;
+        .await
+        .map_err(crate::error::Error::from)?;
 
     Ok(result)
 }
