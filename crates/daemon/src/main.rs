@@ -3,11 +3,9 @@ mod controller;
 mod database;
 mod middleware;
 mod service;
-mod system_tray;
 mod view;
 
 use crate::client::DaemonClient;
-use crate::system_tray::system_tray;
 
 use clap::Parser;
 use shared_core::local_socket_path;
@@ -47,8 +45,6 @@ async fn main() -> anyhow::Result<()> {
     )?;
 
     let client = Arc::new(DaemonClient::start(database::Database::load().await?).await?);
-
-    // system_tray(cancellation_token.clone())?;
 
     let close_fn;
 

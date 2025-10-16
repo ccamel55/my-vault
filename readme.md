@@ -23,7 +23,6 @@ Too many password managers.
 
 ### Todo
 
-- swap tray item to tray icon from tauri
 - jwt auth
 - swap anyhow to defined errors
 - encrypted sqlite
