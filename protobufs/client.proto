@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 
 message InfoResponse {
   // How long the daemon has been running for in seconds.
-  uint64 uptime_seconds = 1;
+  int64 uptime_seconds = 1;
 }
 
 service Client {

@@ -1,14 +1,14 @@
+use std::ops::Add;
+
 lazy_static::lazy_static! {
     /// Default access token expiration time
-    static ref DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN: std::time::Duration = {
-        // 1 hour
-        std::time::Duration::from_secs(60 * 60)
+    static ref DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN: chrono::Duration = {
+        chrono::Duration::hours(1)
     };
 
     /// Default refresh token expiration time
-    static ref DEFAULT_EXPIRATION_TIME_REFRESH_TOKEN: std::time::Duration = {
-        // 14 days
-        std::time::Duration::from_secs(60 * 24 * 14)
+    static ref DEFAULT_EXPIRATION_TIME_REFRESH_TOKEN: chrono::Duration = {
+        chrono::Duration::days(14)
     };
 }
 
@@ -20,7 +20,7 @@ pub struct JwtClaimAccess {
     // (subject): Subject of the JWT (the user)
     pub sub: String,
     // (expiration time): Time after which the JWT expires
-    pub exp: u64,
+    pub exp: i64,
 
     // Preferred e-mail address
     pub email: String,
@@ -31,10 +31,9 @@ impl JwtClaimAccess {
         Self {
             iss: issuer.into(),
             sub: user_id.into(),
-            exp: crate::time::utc_now()
-                .checked_add(*DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN)
-                .expect("utc expiration time integer overflow")
-                .as_secs(),
+            exp: chrono::offset::Utc::now()
+                .add(*DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN)
+                .timestamp(),
             email: email.into(),
         }
     }
@@ -48,7 +47,7 @@ pub struct JwtClaimRefresh {
     // (subject): Subject of the JWT (the user)
     pub sub: String,
     // (expiration time): Time after which the JWT expires
-    pub exp: u64,
+    pub exp: i64,
 }
 
 impl JwtClaimRefresh {
@@ -56,10 +55,9 @@ impl JwtClaimRefresh {
         Self {
             iss: issuer.into(),
             sub: user_id.into(),
-            exp: crate::time::utc_now()
-                .checked_add(*DEFAULT_EXPIRATION_TIME_REFRESH_TOKEN)
-                .expect("utc expiration time integer overflow")
-                .as_secs(),
+            exp: chrono::offset::Utc::now()
+                .add(*DEFAULT_EXPIRATION_TIME_REFRESH_TOKEN)
+                .timestamp(),
         }
     }
 }

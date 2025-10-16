@@ -2,7 +2,6 @@ pub mod constants;
 pub mod crypt;
 pub mod database;
 pub mod signal;
-pub mod time;
 pub mod tracing;
 
 use std::path::PathBuf;

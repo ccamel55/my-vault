@@ -20,9 +20,10 @@ impl client_server::Client for ClientService {
     #[tracing::instrument]
     async fn info(&self, _request: Request<()>) -> Result<Response<InfoResponse>, Status> {
         let time_start = *self.client.get_time_started();
+        let time_elapsed = chrono::Utc::now() - time_start;
 
         let res = InfoResponse {
-            uptime_seconds: time_start.elapsed().as_secs(),
+            uptime_seconds: time_elapsed.num_seconds(),
         };
 
         Ok(Response::new(res))

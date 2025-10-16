@@ -1,13 +1,12 @@
 use crate::database;
 
 use shared_core::{constants, crypt};
-use tokio::time;
 
 /// Holds information about current daemon client.
 #[derive(Debug)]
 pub struct DaemonClient {
     jwt: crypt::JwtFactory,
-    time_start: time::Instant,
+    time_start: chrono::DateTime<chrono::Utc>,
     database: database::Database,
 }
 
@@ -16,13 +15,13 @@ impl DaemonClient {
     pub async fn start(database: database::Database) -> anyhow::Result<Self> {
         Ok(Self {
             jwt: crypt::JwtFactory::new(constants::JWT_ISSUER).await?,
-            time_start: time::Instant::now(),
+            time_start: chrono::Utc::now(),
             database,
         })
     }
 
     /// Get time daemon was started.
-    pub fn get_time_started(&self) -> &time::Instant {
+    pub fn get_time_started(&self) -> &chrono::DateTime<chrono::Utc> {
         &self.time_start
     }
 

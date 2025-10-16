@@ -8,6 +8,7 @@ shared-core = { path = "../shared-core" }
 shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
+chrono = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 png = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

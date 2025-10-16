@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+chrono = { workspace = true }
 dirs = { workspace = true }
 futures = { workspace = true }
 jsonwebtoken = { workspace = true, features = ["rust_crypto"] }
