@@ -1,13 +1,19 @@
 use sqlx::sqlite;
 use std::collections::HashMap;
 
-use super::{PoolProvider, TableName};
+/// Trait for providing the database table name
+pub trait TableName {
+    const NAME: &'static str;
+}
 
 /// Create new database entry
-pub async fn create<N, P, T>(pool_provider: &P, data: T) -> Result<T, crate::error::Error>
+pub async fn create<D, N, T>(
+    database: super::Database<D>,
+    data: T,
+) -> Result<T, crate::error::Error>
 where
+    D: super::DatabaseName,
     N: TableName,
-    P: PoolProvider,
     T: serde::ser::Serialize + serde::de::DeserializeOwned,
     T: for<'a> sqlx::FromRow<'a, sqlite::SqliteRow> + Unpin + Send,
 {
@@ -36,7 +42,7 @@ where
     );
 
     let result = sqlx::query_as(&query)
-        .fetch_one(pool_provider.get_pool())
+        .fetch_one(database.get_pool())
         .await
         .map_err(crate::error::Error::from)?;
 

@@ -1,9 +1,7 @@
 mod client;
-mod controller;
 mod database;
 mod middleware;
 mod service;
-mod view;
 
 use crate::client::DaemonClient;
 
@@ -45,7 +43,12 @@ async fn main() -> anyhow::Result<()> {
         cancellation_token.clone(),
     )?;
 
-    let client = Arc::new(DaemonClient::start(database::Database::load().await?).await?);
+    let client = Arc::new(DaemonClient::start().await?);
+
+    // Perform migration to ensure that our database is always upto date.
+    sqlx::migrate!()
+        .run(client.get_database().get_pool())
+        .await?;
 
     let close_fn;
 

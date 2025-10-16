@@ -44,7 +44,7 @@ impl User {
 
 #[cfg(test)]
 mod tests {
-    use crate::view::User;
+    use super::User;
 
     #[tokio::test]
     async fn new_user() {
