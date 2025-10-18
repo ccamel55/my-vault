@@ -1,3 +1,4 @@
+use shared_core::rng;
 use validator::Validate;
 
 /// User row entry
@@ -12,6 +13,10 @@ pub struct User {
     pub first_name: String,
     #[validate(length(min = 2, max = 255))]
     pub last_name: String,
+    pub salt: Vec<u8>,
+    pub argon2_iters: u32,
+    pub argon2_memory_mb: u32,
+    pub argon2_threads: u32,
     pub last_updated: Option<chrono::NaiveDateTime>,
 }
 
@@ -34,6 +39,10 @@ impl User {
             password_hash: password_hash.to_string(),
             first_name: first_name.to_string(),
             last_name: last_name.to_string(),
+            salt: rng::random_bytes(64),
+            argon2_iters: 2,
+            argon2_memory_mb: 32,
+            argon2_threads: 2,
             last_updated: None,
         };
 

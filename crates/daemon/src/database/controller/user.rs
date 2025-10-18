@@ -14,7 +14,7 @@ impl ControllerUser {
     pub async fn register<A, B, C, D, E>(
         database: &database::Database<A>,
         email: B,
-        password_hash: C,
+        password: C,
         first_name: D,
         last_name: E,
     ) -> anyhow::Result<uuid::Uuid>
@@ -25,7 +25,7 @@ impl ControllerUser {
         D: ToString,
         E: ToString,
     {
-        let data = view::User::new(email, password_hash, first_name, last_name)?;
+        let data = view::User::new(email, password, first_name, last_name)?;
         let result = database::create::<Self, _>(database.get_pool(), data).await?;
 
         Ok(result.uuid.into_uuid())
