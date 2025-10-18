@@ -190,10 +190,16 @@ where
 
     println!("{}", query.sql());
 
-    sqlx::query(query.sql())
+    // If rows changed is not 0 then it means we modified (deleted a row) the table.
+    let rows_affected = sqlx::query(query.sql())
         .execute(database)
         .await
-        .map_err(crate::error::Error::from)?;
+        .map_err(crate::error::Error::from)?
+        .rows_affected();
+
+    if rows_affected == 0 {
+        return Err(sqlx::error::Error::RowNotFound.into());
+    }
 
     Ok(())
 }
@@ -299,9 +305,8 @@ mod tests {
         let result_2 =
             super::delete::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())]).await;
 
-        // Should always succeed even if it doesn't exist
         assert!(result_1.is_ok());
-        assert!(result_2.is_ok());
+        assert!(result_2.is_err());
 
         Ok(())
     }

@@ -32,13 +32,6 @@ impl DaemonClient {
         // Perform migration to ensure that our database is always upto date.
         sqlx::migrate!().run(database.get_pool()).await?;
 
-        // TODO REMOVE ME RETARDS
-        let email = format!("{}@gmail.com", uuid::Uuid::new_v4());
-        crate::database::controller::ControllerUser::register(
-            &database, email, "shit", "fuck", "you",
-        )
-        .await?;
-
         Ok(Self {
             jwt: crypt::JwtFactory::new().await?,
             time_start: chrono::Utc::now(),

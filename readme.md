@@ -38,18 +38,23 @@ For MacOS protobuf can be installed with the following commands:
 brew install dbuf protobuf 
 ```
 
-### References
+## Theory
 
+TODO
+
+
+## References
+
+- https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pre-hashing-passwords
 - https://contributing.bitwarden.com/architecture/sdk/
 - https://github.com/bitwarden/clients/tree/main/apps/cli
 - https://github.com/dani-garcia/vaultwarden/tree/main/src/api
 - https://sdk-api-docs.bitwarden.com/bitwarden_core/index.html 
 
-### Todo
+## Todo
 
 - jwt auth
 - swap anyhow to defined errors
-- hashed password from client to server (argon 2)
 - hookup database
 - client for testing
 - integration tests
