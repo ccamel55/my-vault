@@ -1,9 +1,42 @@
 # My Vault 
 
-Password manager connector service. 
+Password and secrets manager connector service. 
 
 The initial goal of this project was to create a service similar to 1password connect 
-but for Bitwarden. 
+but for Bitwarden.
+
+In the future I would also like to add support for 1password, Keeper and LastPass 
+under the same service. 
+- https://github.com/lastpass/lastpass-cli
+- https://developer.1password.com/docs/sdks/
+- https://docs.keeper.io/en/enterprise-guide/developer-tools
+
+### Use case
+
+The connector is designed to be hosted and used in a trusted communication network. 
+The currently supported methods being; private network using TCP or localhost using
+unix sockets. 
+
+**IT IS EXTREMELY IMPORTANT THAT THIS SERVICE IS NOT EXPOSED PUBLICLY**
+
+
+### Why a connector service?
+
+Any password or secret manager worth your data does client side encryption and uses the 
+backend as a data store only. In layman's terms; the backend only stores encrypted data and
+only the client can encrypt and decrypt information.
+
+This has obvious security benefits but also means that forwarding requests directly to a 
+service's backend is not possible without also implementing the appropriate client side
+encryption scheme. 
+
+### Existing implementation
+
+Connectors exists for all the services mentioned however all have at least one of the
+following limitations:
+- support for only using one account at a time (not being able to access information across multiple accounts)
+- requires some sort of human input on startup (can not be started without having the user log in etc.)
+- rate limitation (data is not cached meaning normal service rate limitation exists)
 
 ## Contributing
 
@@ -41,7 +74,7 @@ For MacOS protobuf can be installed with the following commands:
 brew install dbuf protobuf 
 ```
 
-## Theory
+## Architecture  
 
 TODO
 
