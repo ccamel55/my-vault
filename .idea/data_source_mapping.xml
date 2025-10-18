@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0909a368-5b55-428e-b944-bf06c00ea70f/console.sql" value="0909a368-5b55-428e-b944-bf06c00ea70f" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0909a368-5b55-428e-b944-bf06c00ea70f/console_1.sql" value="0909a368-5b55-428e-b944-bf06c00ea70f" />
-    <file url="file://$PROJECT_DIR$/crates/shared-core/migrations/20251018010505_sqlite-test.sql" value="0909a368-5b55-428e-b944-bf06c00ea70f" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/bcbc618d-9eaf-46b7-a500-34ad4b589fc1/console.sql" value="bcbc618d-9eaf-46b7-a500-34ad4b589fc1" />
   </component>
 </project>

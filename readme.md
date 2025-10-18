@@ -17,6 +17,8 @@ A capable driver can be found [here](https://github.com/Willena/sqlite-jdbc-cryp
 For Datagrip users, [this](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360007633799-How-to-open-SQLCipher-passwrd-protected-file-in-Datagrip) 
 thread has some helpful information on how to set up the driver.
 
+- `jdbc:sqlite:{file:sqlite_db_file:}\?cipher=sqlcipher&legacy=4[&key={key:param:}]`
+
 ## Requirements
 
 ### Protobuf 

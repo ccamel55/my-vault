@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="daemon.sqlite3" uuid="0909a368-5b55-428e-b944-bf06c00ea70f">
-      <driver-ref>sqlite.xerial</driver-ref>
+    <data-source source="LOCAL" name="SQL Cipher - daemon.sqlite3" uuid="bcbc618d-9eaf-46b7-a500-34ad4b589fc1">
+      <driver-ref>java.sql.Driver</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$USER_HOME$/.config/my-vault-rs/daemon.sqlite3</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$USER_HOME$/.config/my-vault-rs/daemon.sqlite3?cipher=sqlcipher&amp;legacy=4&amp;key=ARaVY1eQmRn7uv71yWNOvW96YXAxAkrs</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
