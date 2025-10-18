@@ -48,3 +48,29 @@ where
     });
     variants.unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use serde::Deserialize;
+
+    #[tokio::test]
+    async fn enum_variants() {
+        #[allow(dead_code)]
+        #[derive(Deserialize)]
+        enum Bye {
+            The,
+            Earth,
+            Is,
+            Flat,
+        }
+
+        let enum_variants = super::enum_variants::<Bye>();
+
+        assert_eq!(enum_variants.len(), 4);
+
+        assert_eq!(enum_variants[0], "The");
+        assert_eq!(enum_variants[1], "Earth");
+        assert_eq!(enum_variants[2], "Is");
+        assert_eq!(enum_variants[3], "Flat");
+    }
+}

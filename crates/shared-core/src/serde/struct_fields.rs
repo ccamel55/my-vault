@@ -48,3 +48,29 @@ where
     });
     fields.unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use serde::Deserialize;
+
+    #[tokio::test]
+    async fn struct_fields() {
+        #[allow(dead_code)]
+        #[derive(Deserialize)]
+        struct Hello {
+            my: bool,
+            name: i32,
+            is: String,
+            jeff: &'static [u8],
+        }
+
+        let field_names = super::struct_fields::<Hello>();
+
+        assert_eq!(field_names.len(), 4);
+
+        assert_eq!(field_names[0], "my");
+        assert_eq!(field_names[1], "name");
+        assert_eq!(field_names[2], "is");
+        assert_eq!(field_names[3], "jeff");
+    }
+}

@@ -3,7 +3,8 @@ use validator::Validate;
 /// User row entry
 #[derive(Debug, serde::Serialize, serde::Deserialize, sqlx::FromRow, validator::Validate)]
 pub struct User {
-    pub uuid: uuid::Uuid,
+    #[serde(deserialize_with = "shared_core::serde::uuid::Hyphenated::deserialize")]
+    pub uuid: uuid::fmt::Hyphenated,
     #[validate(email)]
     pub email: String,
     pub password_hash: String,
@@ -28,7 +29,7 @@ impl User {
         D: ToString,
     {
         let res = User {
-            uuid: uuid::Uuid::new_v4(),
+            uuid: uuid::Uuid::new_v4().into(),
             email: email.to_string(),
             password_hash: password_hash.to_string(),
             first_name: first_name.to_string(),

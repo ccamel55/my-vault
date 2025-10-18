@@ -28,6 +28,6 @@ impl ControllerUser {
         let data = view::User::new(email, password_hash, first_name, last_name)?;
         let result = database::create::<Self, _, _>(database, data).await?;
 
-        Ok(result.uuid)
+        Ok(result.uuid.into_uuid())
     }
 }
