@@ -26,7 +26,7 @@ impl ControllerUser {
         E: ToString,
     {
         let data = view::User::new(email, password_hash, first_name, last_name)?;
-        let result = database::create::<Self, _, _>(database, data).await?;
+        let result = database::create::<Self, _>(database.get_pool(), data).await?;
 
         Ok(result.uuid.into_uuid())
     }
