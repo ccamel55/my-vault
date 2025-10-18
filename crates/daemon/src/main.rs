@@ -1,14 +1,17 @@
 mod client;
+mod config;
 mod database;
 mod middleware;
 mod service;
 
 use crate::client::DaemonClient;
+use crate::config::LocalConfig;
 
 use clap::Parser;
 use shared_core::constants;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
@@ -18,10 +21,12 @@ use tokio_util::task::TaskTracker;
 struct Args {
     /// Address to server TCP connection.
     /// If none and on a supported platform, a socket will be used instead.
-    #[arg(short, long, default_value = Some("0.0.0.0:10001".into()))]
+    #[arg(short, long, default_value = Some("0.0.0.0:10001".into()), env = "MY_VAULT_TCP_ADDRESS")]
     tcp_address: String,
 
-    #[arg(short, long, action)]
+    /// Use unix socket instead of TCP loopback.
+    #[cfg(unix)]
+    #[arg(short, long, action, env = "MY_VAULT_UNIX_SOCKET")]
     unix_socket: bool,
 }
 
@@ -43,7 +48,8 @@ async fn main() -> anyhow::Result<()> {
         cancellation_token.clone(),
     )?;
 
-    let client = Arc::new(DaemonClient::start().await?);
+    let config = Arc::new(RwLock::new(LocalConfig::load().await?));
+    let client = Arc::new(DaemonClient::start(config.clone()).await?);
 
     let close_fn;
 
@@ -125,6 +131,10 @@ async fn main() -> anyhow::Result<()> {
     // IMPORTANT: only do cleanup after task tracker has yield otherwise we might be
     //            removing resources still being used.
     //
+
+    if let Err(e) = config.write().await.save().await {
+        tracing::warn!("error saving config: {e}")
+    }
 
     if let Some(close_fn) = close_fn {
         close_fn.await;

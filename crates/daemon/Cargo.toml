@@ -10,13 +10,12 @@ shared-service = { path = "../shared-service" }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true }
+prost = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
-prost = { workspace = true }
-thiserror = { workspace = true }
 tonic = { workspace = true }
 tonic-health = { workspace = true }
 tonic-middleware = { workspace = true }
@@ -24,3 +23,7 @@ tonic-prost = { workspace = true }
 tonic-reflection = { workspace = true }
 uuid = { workspace = true }
 validator = { workspace = true }
+
+# This needs to be here since we are overiding the features to use sqlcipher for
+# an encrypted sqlite database.
+libsqlite3-sys = { workspace = true }

@@ -20,7 +20,7 @@ pub struct Database<D: DatabaseName> {
 impl<D: DatabaseName> Database<D> {
     /// Load database instance.
     /// This will create a new local database if none is found.
-    pub async fn load() -> Result<Self, crate::error::Error> {
+    pub async fn load(encryption_key: String) -> Result<Self, crate::error::Error> {
         let sqlite_file_path = format!(
             "sqlite://{}",
             crate::GLOBAL_CONFIG_PATH.join(D::NAME).display()
@@ -30,6 +30,7 @@ impl<D: DatabaseName> Database<D> {
 
         // Create a new SQLX connection to local database file.
         let options = sqlite::SqliteConnectOptions::from_str(&sqlite_file_path)?
+            .pragma("key", encryption_key)
             .read_only(false)
             .create_if_missing(true);
 

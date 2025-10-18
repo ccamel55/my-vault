@@ -25,11 +25,8 @@ Too many password managers.
 
 - jwt auth
 - swap anyhow to defined errors
-- encrypted sqlite
-- config system
 - hashed password from client to server (argon 2)
 - hookup database
-- unit tests
 - client for testing
 - integration tests
 - remote database

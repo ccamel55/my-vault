@@ -1,5 +1,11 @@
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("io error - ${0}")]
+    IO(std::io::Error),
+
+    #[error("config error - ${0}")]
+    Config(String),
+
     #[error("error creating log file - ${0}")]
     LogFile(String),
 
@@ -14,6 +20,24 @@ pub enum Error {
 
     #[error("error from database - ${0}")]
     Database(#[source] Box<dyn sqlx::error::DatabaseError>),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(value: std::io::Error) -> Self {
+        Error::IO(value)
+    }
+}
+
+impl From<toml::ser::Error> for Error {
+    fn from(value: toml::ser::Error) -> Self {
+        Error::Config(value.to_string())
+    }
+}
+
+impl From<toml::de::Error> for Error {
+    fn from(value: toml::de::Error) -> Self {
+        Error::Config(value.to_string())
+    }
 }
 
 impl From<sqlx::Error> for Error {
