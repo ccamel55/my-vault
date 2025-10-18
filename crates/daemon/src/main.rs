@@ -9,6 +9,7 @@ use crate::config::LocalConfig;
 
 use clap::Parser;
 use shared_core::constants;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -20,13 +21,25 @@ use tokio_util::task::TaskTracker;
 #[command(version, about, long_about = None)]
 struct Args {
     /// Address to server TCP connection.
-    /// If none and on a supported platform, a socket will be used instead.
-    #[arg(short, long, default_value = Some("0.0.0.0:10001".into()), env = "MY_VAULT_TCP_ADDRESS")]
+    /// This can be either an ipv4 or ipv6 address.
+    #[arg(
+        short,
+        long,
+        default_value = "0.0.0.0:10001",
+        env = "MY_VAULT_TCP_ADDRESS"
+    )]
     tcp_address: String,
 
     /// Use unix socket instead of TCP loopback.
+    /// This is enabled for by default for supported systems.
     #[cfg(unix)]
-    #[arg(short, long, action, env = "MY_VAULT_UNIX_SOCKET")]
+    #[arg(
+        short,
+        long,
+        action,
+        default_value_t = true,
+        env = "MY_VAULT_UNIX_SOCKET"
+    )]
     unix_socket: bool,
 }
 

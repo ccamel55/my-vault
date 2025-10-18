@@ -1,6 +1,9 @@
 # My Vault 
 
-Too many password managers. 
+Password manager connector service. 
+
+The initial goal of this project was to create a service similar to 1password connect 
+but for Bitwarden. 
 
 ## Contributing
 
