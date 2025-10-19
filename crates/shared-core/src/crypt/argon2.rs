@@ -57,6 +57,8 @@ impl Default for Argon2Factory {
 
 #[cfg(test)]
 mod tests {
+    use crate::rng;
+
     #[tokio::test]
     async fn invalid_args() {
         let result_ok = super::Argon2Factory::new(2, 32, 2);
@@ -87,10 +89,10 @@ mod tests {
         const PASSPHRASE: &str = "hello world!";
 
         let salt_1 = b"my salt sucks";
-        let salt_2 = b"you salt sucks too";
+        let salt_2 = rng::random_bytes(16);
 
         let result_1 = argon.encode(PASSPHRASE.as_bytes(), salt_1).await;
-        let result_2 = argon.encode(PASSPHRASE.as_bytes(), salt_2).await;
+        let result_2 = argon.encode(PASSPHRASE.as_bytes(), salt_2.as_slice()).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_ok());

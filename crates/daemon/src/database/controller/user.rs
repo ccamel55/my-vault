@@ -41,7 +41,7 @@ impl ControllerUser {
     ) -> anyhow::Result<view::User> {
         let config = self.config.config.read().await.encryption.clone();
 
-        let salt = rng::random_bytes(64);
+        let salt = rng::random_bytes(16);
         let password_hash = crypt::Argon2Factory::new(
             config.argon2_iters,
             config.argon2_memory_mb,
