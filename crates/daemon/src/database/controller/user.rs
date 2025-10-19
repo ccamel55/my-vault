@@ -25,7 +25,9 @@ impl ControllerUser {
         D: ToString,
         E: ToString,
     {
-        let data = view::User::new(email, password, first_name, last_name)?;
+        // TODO Convert password into hashed blob that we store in database.
+
+        let data = view::User::new(email, password.to_string(), first_name, last_name)?;
         let result = database::create::<Self, _>(database.get_pool(), data).await?;
 
         Ok(result.uuid.into_uuid())

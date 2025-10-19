@@ -89,7 +89,6 @@ TODO
 
 ## Todo
 
-- jwt auth
 - swap anyhow to defined errors
 - hookup database
 - client for testing

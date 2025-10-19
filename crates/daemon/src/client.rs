@@ -39,6 +39,11 @@ impl DaemonClient {
         })
     }
 
+    /// Get jwt factory instance.
+    pub fn get_jwt_factory(&self) -> &crypt::JwtFactory<Self> {
+        &self.jwt
+    }
+
     /// Get time daemon was started.
     pub fn get_time_started(&self) -> &chrono::DateTime<chrono::Utc> {
         &self.time_start

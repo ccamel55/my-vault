@@ -8,7 +8,7 @@ pub struct User {
     pub uuid: uuid::fmt::Hyphenated,
     #[validate(email)]
     pub email: String,
-    pub password_hash: String,
+    pub password_hash: Vec<u8>,
     #[validate(length(min = 2, max = 255))]
     pub first_name: String,
     #[validate(length(min = 2, max = 255))]
@@ -29,14 +29,14 @@ impl User {
     ) -> Result<Self, validator::ValidationErrors>
     where
         A: ToString,
-        B: ToString,
+        B: Into<Vec<u8>>,
         C: ToString,
         D: ToString,
     {
         let res = User {
             uuid: uuid::Uuid::new_v4().into(),
             email: email.to_string(),
-            password_hash: password_hash.to_string(),
+            password_hash: password_hash.into(),
             first_name: first_name.to_string(),
             last_name: last_name.to_string(),
             salt: rng::random_bytes(64),

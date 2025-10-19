@@ -30,12 +30,9 @@ pub async fn create_services(
     let routes = tonic::service::RoutesBuilder::default()
         .add_service(reflection_service)
         .add_service(health_service)
+        .add_service(auth_server::AuthServer::new(service_auth))
         .add_service(tonic_middleware::InterceptorFor::new(
             client_server::ClientServer::new(service_client),
-            mw_auth.clone(),
-        ))
-        .add_service(tonic_middleware::InterceptorFor::new(
-            auth_server::AuthServer::new(service_auth),
             mw_auth.clone(),
         ))
         .to_owned()

@@ -9,7 +9,6 @@ use crate::config::LocalConfig;
 
 use clap::Parser;
 use shared_core::constants;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
