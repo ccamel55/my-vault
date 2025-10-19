@@ -8,7 +8,7 @@ CREATE TABLE users (
     salt                BLOB NOT NULL,
     argon2_iters        INTEGER NOT NULL,
     argon2_memory_mb    INTEGER NOT NULL,
-    argon2_threads      INTEGER NOT NULL,
+    argon2_parallelism  INTEGER NOT NULL,
     last_updated        TIMESTAMP,
 
     PRIMARY KEY (uuid)

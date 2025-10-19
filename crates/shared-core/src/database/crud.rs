@@ -205,7 +205,7 @@ where
 }
 
 /// Checks if something exists
-pub async fn exists<N, T>(
+pub async fn exists<N>(
     database: &sqlite::SqlitePool,
     where_map: Vec<(&'static str, String)>,
 ) -> Result<bool, crate::error::Error>
@@ -349,14 +349,9 @@ mod tests {
 
     #[sqlx::test]
     async fn exists(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
-        let result_1 =
-            super::exists::<TestDatabase, TestRow>(&pool, vec![("name", "bob".into())]).await;
-
-        let result_2 =
-            super::exists::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())]).await;
-
-        let result_3 =
-            super::exists::<TestDatabase, TestRow>(&pool, vec![("dicks", "bob".into())]).await;
+        let result_1 = super::exists::<TestDatabase>(&pool, vec![("name", "bob".into())]).await;
+        let result_2 = super::exists::<TestDatabase>(&pool, vec![("name", "penis".into())]).await;
+        let result_3 = super::exists::<TestDatabase>(&pool, vec![("dicks", "bob".into())]).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_ok());

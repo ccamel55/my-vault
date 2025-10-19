@@ -1,34 +1,72 @@
+use crate::client::DaemonClient;
+use crate::config::ConfigManager;
 use crate::database::view;
 
-use shared_core::database;
+use shared_core::{crypt, database, rng};
+use std::sync::Arc;
 
 /// User table controller
-pub struct ControllerUser;
+#[derive(Debug, Clone)]
+pub struct ControllerUser {
+    pub(crate) config: Arc<ConfigManager>,
+    pub(crate) client: Arc<DaemonClient>,
+}
+
+impl ControllerUser {
+    pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {
+        Self { config, client }
+    }
+}
 
 impl database::TableName for ControllerUser {
     const NAME: &'static str = "users";
 }
 
 impl ControllerUser {
-    /// Register a new user
-    pub async fn register<A, B, C, D>(
-        database: &database::Database,
-        email: A,
-        password: B,
-        first_name: C,
-        last_name: D,
-    ) -> anyhow::Result<uuid::Uuid>
-    where
-        A: ToString,
-        B: ToString,
-        C: ToString,
-        D: ToString,
-    {
-        // TODO Convert password into hashed blob that we store in database.
+    /// Checks if user with email exists
+    pub async fn exists(&self, email: String) -> anyhow::Result<bool> {
+        // Filter by email
+        let filter = vec![("email", email)];
+        let result =
+            database::exists::<Self>(self.client.get_database().get_pool(), filter).await?;
 
-        let data = view::User::new(email, password.to_string(), first_name, last_name)?;
-        let result = database::create::<Self, _>(database.get_pool(), data).await?;
+        Ok(result)
+    }
 
-        Ok(result.uuid.into_uuid())
+    /// Add a new user
+    pub async fn add(
+        &self,
+        email: String,
+        password: String,
+        first_name: String,
+        last_name: String,
+    ) -> anyhow::Result<view::User> {
+        let config = self.config.config.read().await.encryption.clone();
+
+        let salt = rng::random_bytes(64);
+        let password_hash = crypt::Argon2Factory::new(
+            config.argon2_iters,
+            config.argon2_memory_mb,
+            config.argon2_parallelism,
+        )
+        .map_err(|e| anyhow::anyhow!(e))?
+        .encode(password.as_bytes(), &salt)
+        .await?;
+
+        let data = view::User::new(
+            email,
+            password_hash,
+            first_name,
+            last_name,
+            salt,
+            config.argon2_iters,
+            config.argon2_memory_mb,
+            config.argon2_parallelism,
+        )?;
+
+        let result =
+            database::create::<Self, _>(self.client.get_database().get_pool(), data).await?;
+
+        Ok(result)
     }
 }

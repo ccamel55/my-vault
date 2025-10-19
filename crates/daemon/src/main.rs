@@ -104,7 +104,7 @@ async fn main() -> anyhow::Result<()> {
             let stream = tonic::codegen::tokio_stream::wrappers::UnixListenerStream::new(uds);
 
             tonic::transport::Server::builder()
-                .add_routes(service::create_services(client).await?)
+                .add_routes(service::create_services(config.clone(), client).await?)
                 .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
                 .await?;
         }
@@ -126,7 +126,7 @@ async fn main() -> anyhow::Result<()> {
         let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
 
         tonic::transport::Server::builder()
-            .add_routes(service::create_services(client).await?)
+            .add_routes(service::create_services(config.clone(), client).await?)
             .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
             .await?;
     }

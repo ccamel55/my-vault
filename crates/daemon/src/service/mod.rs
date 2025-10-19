@@ -1,16 +1,17 @@
-mod auth;
 mod client;
+mod user;
 
-use shared_service::{auth_server, client_server};
+use shared_service::{client_server, user_server};
 use std::sync::Arc;
 
 /// Create gRPC service router with all our services.
 pub async fn create_services(
+    config: Arc<crate::ConfigManager>,
     client: Arc<crate::DaemonClient>,
 ) -> anyhow::Result<tonic::service::Routes> {
     let mw_auth = crate::middleware::Authentication::new(client.clone())?;
 
-    let service_auth = auth::AuthService::new(client.clone())?;
+    let service_user = user::UserService::new(config.clone(), client.clone())?;
     let service_client = client::ClientService::new(client.clone())?;
 
     let reflection_service = tonic_reflection::server::Builder::configure()
@@ -24,13 +25,13 @@ pub async fn create_services(
         .await;
 
     health_reporter
-        .set_serving::<auth_server::AuthServer<auth::AuthService>>()
+        .set_serving::<user_server::UserServer<user::UserService>>()
         .await;
 
     let routes = tonic::service::RoutesBuilder::default()
         .add_service(reflection_service)
         .add_service(health_service)
-        .add_service(auth_server::AuthServer::new(service_auth))
+        .add_service(user_server::UserServer::new(service_user))
         .add_service(tonic_middleware::InterceptorFor::new(
             client_server::ClientServer::new(service_client),
             mw_auth.clone(),

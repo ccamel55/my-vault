@@ -1,4 +1,3 @@
-use shared_core::rng;
 use validator::Validate;
 
 /// User row entry
@@ -8,7 +7,7 @@ pub struct User {
     pub uuid: uuid::fmt::Hyphenated,
     #[validate(email)]
     pub email: String,
-    pub password_hash: Vec<u8>,
+    pub password_hash: String,
     #[validate(length(min = 2, max = 255))]
     pub first_name: String,
     #[validate(length(min = 2, max = 255))]
@@ -16,7 +15,7 @@ pub struct User {
     pub salt: Vec<u8>,
     pub argon2_iters: u32,
     pub argon2_memory_mb: u32,
-    pub argon2_threads: u32,
+    pub argon2_parallelism: u32,
     pub last_updated: Option<chrono::NaiveDateTime>,
 }
 
@@ -26,23 +25,27 @@ impl User {
         password_hash: B,
         first_name: C,
         last_name: D,
+        salt: Vec<u8>,
+        argon2_iters: u32,
+        argon2_memory_mb: u32,
+        argon2_parallelism: u32,
     ) -> Result<Self, validator::ValidationErrors>
     where
         A: ToString,
-        B: Into<Vec<u8>>,
+        B: ToString,
         C: ToString,
         D: ToString,
     {
         let res = User {
             uuid: uuid::Uuid::new_v4().into(),
             email: email.to_string(),
-            password_hash: password_hash.into(),
+            password_hash: password_hash.to_string(),
             first_name: first_name.to_string(),
             last_name: last_name.to_string(),
-            salt: rng::random_bytes(64),
-            argon2_iters: 2,
-            argon2_memory_mb: 32,
-            argon2_threads: 2,
+            salt,
+            argon2_iters,
+            argon2_memory_mb,
+            argon2_parallelism,
             last_updated: None,
         };
 
@@ -55,6 +58,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::User;
+    use shared_core::rng;
 
     #[tokio::test]
     async fn new_user() {
@@ -63,11 +67,24 @@ mod tests {
             "123456",
             &"a".repeat(255),
             &"b".repeat(255),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
         );
 
         assert!(res_ok.is_ok());
 
-        let res_invalid_email = User::new("hello.com", "123456", "a".repeat(255), "b".repeat(255));
+        let res_invalid_email = User::new(
+            "hello.com",
+            "123456",
+            "a".repeat(255),
+            "b".repeat(255),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
+        );
 
         assert!(res_invalid_email.is_err());
 
@@ -76,8 +93,16 @@ mod tests {
 
         assert!(res_invalid_email_err.contains_key("email"));
 
-        let res_fn_too_short =
-            User::new("hello@mail.com", "123456", "a".repeat(1), "b".repeat(255));
+        let res_fn_too_short = User::new(
+            "hello@mail.com",
+            "123456",
+            "a".repeat(1),
+            "b".repeat(255),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
+        );
 
         assert!(res_fn_too_short.is_err());
 
@@ -86,8 +111,16 @@ mod tests {
 
         assert!(res_fn_too_short_err.contains_key("first_name"));
 
-        let res_fn_too_long =
-            User::new("hello@mail.com", "123456", "a".repeat(256), "b".repeat(255));
+        let res_fn_too_long = User::new(
+            "hello@mail.com",
+            "123456",
+            "a".repeat(256),
+            "b".repeat(255),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
+        );
 
         assert!(res_fn_too_long.is_err());
 
@@ -96,8 +129,16 @@ mod tests {
 
         assert!(res_fn_too_long_err.contains_key("first_name"));
 
-        let res_ln_too_short =
-            User::new("hello@mail.com", "123456", "a".repeat(255), "b".repeat(1));
+        let res_ln_too_short = User::new(
+            "hello@mail.com",
+            "123456",
+            "a".repeat(255),
+            "b".repeat(1),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
+        );
 
         assert!(res_ln_too_short.is_err());
 
@@ -106,8 +147,16 @@ mod tests {
 
         assert!(res_ln_too_short_err.contains_key("last_name"));
 
-        let res_ln_too_long =
-            User::new("hello@mail.com", "123456", "a".repeat(255), "b".repeat(256));
+        let res_ln_too_long = User::new(
+            "hello@mail.com",
+            "123456",
+            "a".repeat(255),
+            "b".repeat(256),
+            rng::random_bytes(64),
+            2,
+            32,
+            2,
+        );
 
         assert!(res_ln_too_long.is_err());
 
