@@ -204,6 +204,42 @@ where
     Ok(())
 }
 
+/// Checks if something exists
+pub async fn exists<N, T>(
+    database: &sqlite::SqlitePool,
+    where_map: Vec<(&'static str, String)>,
+) -> Result<bool, crate::error::Error>
+where
+    N: TableName,
+{
+    let mut select_query: sqlx::QueryBuilder<'_, sqlx::Sqlite> =
+        sqlx::query_builder::QueryBuilder::new(format!("SELECT 1 FROM {}", N::NAME));
+
+    if !where_map.is_empty() {
+        select_query.push(" WHERE");
+
+        for (i, (k, v)) in where_map.iter().enumerate() {
+            if i > 0 {
+                select_query.push(" AND");
+            }
+
+            select_query.push(" ");
+            select_query.push(k);
+            select_query.push(" = ");
+            select_query.push(format!("'{}'", v));
+        }
+    }
+
+    let query = format!("SELECT EXISTS({})", select_query.sql());
+
+    let result = sqlx::query_scalar(&query)
+        .fetch_one(database)
+        .await
+        .map_err(crate::error::Error::from)?;
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use sqlx::sqlite;
@@ -307,6 +343,30 @@ mod tests {
 
         assert!(result_1.is_ok());
         assert!(result_2.is_err());
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn exists(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
+        let result_1 =
+            super::exists::<TestDatabase, TestRow>(&pool, vec![("name", "bob".into())]).await;
+
+        let result_2 =
+            super::exists::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())]).await;
+
+        let result_3 =
+            super::exists::<TestDatabase, TestRow>(&pool, vec![("dicks", "bob".into())]).await;
+
+        assert!(result_1.is_ok());
+        assert!(result_2.is_ok());
+        assert!(result_3.is_err());
+
+        let result_1 = result_1.unwrap();
+        let result_2 = result_2.unwrap();
+
+        assert_eq!(result_1, true);
+        assert_eq!(result_2, false);
 
         Ok(())
     }

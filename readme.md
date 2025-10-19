@@ -89,7 +89,6 @@ TODO
 
 ## Todo
 
-- add argon2 password hashing and tests
 - update api to better represent MVC architecture and usage 
 - add tests for tonic using mock https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs
 

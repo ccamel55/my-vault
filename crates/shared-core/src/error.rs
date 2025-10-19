@@ -13,6 +13,12 @@ pub enum Error {
     TracingSubscriber(String),
 
     #[error("{0}")]
+    TaskJoin(tokio::task::JoinError),
+
+    #[error("error running cryptographic function")]
+    Crypto,
+
+    #[error("{0}")]
     Sqlx(String),
 
     #[error("error from migration - ${0}")]
