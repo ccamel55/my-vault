@@ -5,17 +5,11 @@ use crate::database::view;
 use shared_core::{crypt, database, rng};
 use std::sync::Arc;
 
-/// User table controller
+/// User controller
 #[derive(Debug, Clone)]
 pub struct ControllerUser {
     pub(crate) config: Arc<ConfigManager>,
     pub(crate) client: Arc<DaemonClient>,
-}
-
-impl ControllerUser {
-    pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {
-        Self { config, client }
-    }
 }
 
 impl database::TableName for ControllerUser {
@@ -23,6 +17,10 @@ impl database::TableName for ControllerUser {
 }
 
 impl ControllerUser {
+    pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {
+        Self { config, client }
+    }
+
     /// Checks if user with email exists
     pub async fn exists(&self, email: String) -> anyhow::Result<bool> {
         // Filter by email

@@ -21,24 +21,16 @@ struct Args {
     /// Address to server TCP connection.
     /// This can be either an ipv4 or ipv6 address.
     #[arg(
-        short,
+        short = 'a',
         long,
         default_value = "0.0.0.0:10001",
         env = "MY_VAULT_TCP_ADDRESS"
     )]
     tcp_address: String,
 
-    /// Use unix socket instead of TCP loopback.
-    /// This is enabled for by default for supported systems.
-    #[cfg(unix)]
-    #[arg(
-        short,
-        long,
-        action,
-        default_value_t = true,
-        env = "MY_VAULT_UNIX_SOCKET"
-    )]
-    unix_socket: bool,
+    /// Use TCP socket
+    #[arg(short, long, env = "MY_VAULT_TCP_SOCKET")]
+    tcp_socket: bool,
 }
 
 //noinspection DuplicatedCode
@@ -65,7 +57,23 @@ async fn main() -> anyhow::Result<()> {
     let close_fn;
 
     // Start serving our service
-    if args.unix_socket {
+    if args.tcp_socket {
+        let tcp_address = args.tcp_address;
+
+        // Tcp requires no cleanup
+        close_fn = None;
+
+        // Create tcp listener stream
+        tracing::info!("tcp address: {}", &tcp_address);
+
+        let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
+        let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
+
+        tonic::transport::Server::builder()
+            .add_routes(service::create_services(config.clone(), client).await?)
+            .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+            .await?;
+    } else {
         #[cfg(unix)]
         {
             let uds_socket_path = PathBuf::from("/tmp")
@@ -113,22 +121,6 @@ async fn main() -> anyhow::Result<()> {
         {
             panic!("non unix platforms only support tcp")
         }
-    } else {
-        let tcp_address = args.tcp_address;
-
-        // Tcp requires no cleanup
-        close_fn = None;
-
-        // Create tcp listener stream
-        tracing::info!("tcp address: {}", &tcp_address);
-
-        let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
-        let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
-
-        tonic::transport::Server::builder()
-            .add_routes(service::create_services(config.clone(), client).await?)
-            .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
-            .await?;
     }
 
     // Close signal stream
