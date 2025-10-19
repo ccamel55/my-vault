@@ -1,12 +1,6 @@
-use crate::GLOBAL_CONFIG_PATH;
-
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
-
-/// Config filename trait.
-pub trait ConfigMetadata {
-    const FILE_NAME: &'static str;
-}
+use std::path::Path;
 
 /// Local config new type.
 ///
@@ -16,22 +10,19 @@ pub trait ConfigMetadata {
 pub struct LocalConfig<T>(pub T)
 where
     T: serde::de::DeserializeOwned + serde::ser::Serialize,
-    T: ConfigMetadata,
     T: Default;
 
 /// Implement general load/save functions for local config types.
 impl<T> LocalConfig<T>
 where
     T: serde::de::DeserializeOwned + serde::ser::Serialize,
-    T: ConfigMetadata,
     T: Default,
 {
     /// Save the current config.
-    pub async fn save(&self) -> Result<(), crate::error::Error> {
-        tracing::info!("saving config: {}", T::FILE_NAME);
+    pub async fn save(&self, config_path: &Path) -> Result<(), crate::error::Error> {
+        tracing::info!("saving config: {}", &config_path.display());
 
         // Serialize the current struct into a toml config file.
-        let config_path = GLOBAL_CONFIG_PATH.join(T::FILE_NAME);
         let file_contents = toml::to_string_pretty(&self.0)?;
 
         tokio::fs::write(config_path, file_contents).await?;
@@ -40,13 +31,11 @@ where
     }
 
     /// Load the current config from config path.
-    pub async fn load() -> Result<Self, crate::error::Error> {
-        tracing::info!("loading config: {}", T::FILE_NAME);
+    pub async fn load(config_path: &Path) -> Result<Self, crate::error::Error> {
+        tracing::info!("loading config: {}", &config_path.display());
 
         let default = Self::default();
         let default_str = toml::to_string_pretty(&default.0)?;
-
-        let config_path = GLOBAL_CONFIG_PATH.join(T::FILE_NAME);
 
         // Try load config starting with default values.
         let mut config = config::Config::builder();
@@ -74,7 +63,6 @@ where
 impl<T> Deref for LocalConfig<T>
 where
     T: serde::de::DeserializeOwned + serde::ser::Serialize,
-    T: ConfigMetadata,
     T: Default,
 {
     type Target = T;
@@ -87,7 +75,6 @@ where
 impl<T> DerefMut for LocalConfig<T>
 where
     T: serde::de::DeserializeOwned + serde::ser::Serialize,
-    T: ConfigMetadata,
     T: Default,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {

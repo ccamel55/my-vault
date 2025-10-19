@@ -3,7 +3,6 @@ use crate::config;
 use shared_core::crypt;
 use shared_core::database;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Holds information about current daemon client.
 #[derive(Debug)]
@@ -25,8 +24,8 @@ impl database::DatabaseName for DaemonClient {
 
 impl DaemonClient {
     /// Create an instance of the client.
-    pub async fn start(config: Arc<RwLock<config::LocalConfig>>) -> anyhow::Result<Self> {
-        let config = config.read().await.database.clone();
+    pub async fn start(config: Arc<config::ConfigManager>) -> anyhow::Result<Self> {
+        let config = config.config.read().await.database.clone();
         let database = database::Database::load(config.encryption_key).await?;
 
         // Perform migration to ensure that our database is always upto date.

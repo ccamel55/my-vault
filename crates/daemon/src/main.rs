@@ -5,13 +5,12 @@ mod middleware;
 mod service;
 
 use crate::client::DaemonClient;
-use crate::config::LocalConfig;
+use crate::config::ConfigManager;
 
 use clap::Parser;
 use shared_core::constants;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
@@ -60,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
         cancellation_token.clone(),
     )?;
 
-    let config = Arc::new(RwLock::new(LocalConfig::load().await?));
+    let config = Arc::new(ConfigManager::load().await?);
     let client = Arc::new(DaemonClient::start(config.clone()).await?);
 
     let close_fn;
@@ -144,7 +143,7 @@ async fn main() -> anyhow::Result<()> {
     //            removing resources still being used.
     //
 
-    if let Err(e) = config.write().await.save().await {
+    if let Err(e) = config.save().await {
         tracing::warn!("error saving config: {e}")
     }
 
