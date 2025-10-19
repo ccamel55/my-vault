@@ -85,22 +85,100 @@ where
 #[cfg(test)]
 mod tests {
     use crate::rng;
+    use std::collections::HashMap;
     use std::path::PathBuf;
+
+    /// Test config
+    #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+    pub struct Config {
+        pub some_value_1: usize,
+        pub some_value_2: Vec<usize>,
+        pub some_value_3: HashMap<String, usize>,
+        pub some_value_4: SubConfig,
+        pub some_value_5: Vec<SubConfig>,
+        pub some_value_6: HashMap<String, SubConfig>,
+    }
+
+    #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize, PartialEq)]
+    pub struct SubConfig {
+        pub value_1: String,
+        pub value_2: f64,
+    }
+
+    impl SubConfig {
+        pub fn new(index: usize) -> Self {
+            Self {
+                value_1: format!("my index is {}", index),
+                value_2: index as f64 / 3.33,
+            }
+        }
+    }
+
+    pub type LocalConfig = crate::config::LocalConfig<Config>;
 
     #[tokio::test]
     async fn save_load() {
+        // Add shit to out config
+        let mut config = LocalConfig::default();
+
+        config.some_value_1 = 69;
+        config.some_value_2 = (0..10).collect();
+        config.some_value_3 = (0..5)
+            .map(|x| (format!("map-primitive-{}", x), x))
+            .collect();
+
+        config.some_value_4 = SubConfig::new(69);
+        config.some_value_5 = (0..10).map(|x| SubConfig::new(x)).collect();
+        config.some_value_6 = (0..5)
+            .map(|x| (format!("map-primitive-{}", x), SubConfig::new(x)))
+            .collect();
+
         // Create random file in test data folder
         let config_path = PathBuf::from(env!("WORKSPACE_DIR"))
             .join("test-data")
-            .join("config")
+            .join("temp")
             .join(format!("{}.toml", rng::random_string(10)));
 
+        let result_save = config.save(&config_path).await;
+        let result_load = LocalConfig::load(&config_path).await;
 
+        assert!(result_save.is_ok());
+        assert!(result_load.is_ok());
+
+        assert!(tokio::fs::remove_file(&config_path).await.is_ok());
+
+        // Make sure all our data is the same
+        let config_2 = result_load.unwrap();
+
+        assert_eq!(config_2.some_value_1, config.some_value_1);
+        assert_eq!(config_2.some_value_2, config.some_value_2);
+        assert_eq!(config_2.some_value_3, config.some_value_3);
+        assert_eq!(config_2.some_value_4, config.some_value_4);
+        assert_eq!(config_2.some_value_5, config.some_value_5);
+        assert_eq!(config_2.some_value_6, config.some_value_6);
     }
 
     #[tokio::test]
-    async fn load_empty() {}
+    async fn load_empty() {
+        let config_path = PathBuf::from(env!("WORKSPACE_DIR"))
+            .join("test-data")
+            .join("config")
+            .join("empty.toml");
+
+        let result = LocalConfig::load(&config_path).await;
+
+        assert!(result.is_ok());
+    }
 
     #[tokio::test]
-    async fn load_unknown_fields() {}
+    async fn load_unknown_fields() {
+        let config_path = PathBuf::from(env!("WORKSPACE_DIR"))
+            .join("test-data")
+            .join("config")
+            .join("unknown-fields.toml");
+
+        let result = LocalConfig::load(&config_path).await;
+
+        assert!(result.is_ok());
+    }
 }
