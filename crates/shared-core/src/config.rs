@@ -81,3 +81,26 @@ where
         &mut self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::rng;
+    use std::path::PathBuf;
+
+    #[tokio::test]
+    async fn save_load() {
+        // Create random file in test data folder
+        let config_path = PathBuf::from(env!("WORKSPACE_DIR"))
+            .join("test-data")
+            .join("config")
+            .join(format!("{}.toml", rng::random_string(10)));
+
+
+    }
+
+    #[tokio::test]
+    async fn load_empty() {}
+
+    #[tokio::test]
+    async fn load_unknown_fields() {}
+}

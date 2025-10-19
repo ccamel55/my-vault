@@ -32,9 +32,7 @@ fn emit_rerun_if_changed<T: Display>(path: T) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    const WORKSPACE_DIR: &str = env!("WORKSPACE_DIR");
-
-    let include_path = PathBuf::from(WORKSPACE_DIR).join("protobufs");
+    let include_path = PathBuf::from(env!("WORKSPACE_DIR")).join("protobufs");
     let descriptor_path =
         PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("shared-service-descriptors.bin");
 
