@@ -10,6 +10,8 @@ shared-service = { path = "../shared-service" }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true }
+dirs = { workspace = true }
+lazy_static = { workspace = true }
 prost = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }

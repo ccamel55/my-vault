@@ -1,5 +1,4 @@
-use crate::GLOBAL_CACHE_PATH;
-
+use std::path::Path;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::Layer;
 use tracing_subscriber::filter::LevelFilter;
@@ -7,13 +6,16 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 /// Install global tracing subscriber
-pub fn init_subscriber(log_name: &str) -> Result<(), crate::error::Error> {
+pub fn init_tracing_subscriber(log_path: &Path) -> Result<(), crate::error::Error> {
+    let filename = log_path.file_stem().unwrap().to_str().unwrap().to_string();
+    let parent = log_path.parent().unwrap();
+
     // Create new writer which rolls logs every day.
     let writer_rolling_file = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
-        .filename_prefix("lib")
+        .filename_prefix(filename)
         .filename_suffix("log")
-        .build(GLOBAL_CACHE_PATH.as_path().join(log_name))
+        .build(parent)
         .map_err(|e| crate::error::Error::LogFile(e.to_string()))?;
 
     // Only write to stdout if we are not the CLI client.

@@ -1,3 +1,4 @@
+use crate::constants;
 use shared_core::{config, rng};
 use tokio::sync::RwLock;
 
@@ -40,7 +41,7 @@ pub struct ConfigManager {
 impl ConfigManager {
     pub async fn load() -> anyhow::Result<Self> {
         let config = LocalConfig::load(
-            shared_core::GLOBAL_CONFIG_PATH
+            constants::GLOBAL_CONFIG_PATH
                 .join(CONFIG_FILE_NAME)
                 .as_path(),
         )
@@ -56,7 +57,7 @@ impl ConfigManager {
             .write()
             .await
             .save(
-                shared_core::GLOBAL_CONFIG_PATH
+                constants::GLOBAL_CONFIG_PATH
                     .join(CONFIG_FILE_NAME)
                     .as_path(),
             )

@@ -1,30 +1,24 @@
 mod crud;
 
 use sqlx::sqlite;
-use std::marker::PhantomData;
+use std::path::Path;
 use std::str::FromStr;
 
 pub use crud::*;
 
-/// Trait for providing the database file name
-pub trait DatabaseName {
-    const NAME: &'static str;
-}
-
 #[derive(Debug)]
-pub struct Database<D: DatabaseName> {
+pub struct Database {
     sqlite_pool: sqlite::SqlitePool,
-    database_name: PhantomData<D>,
 }
 
-impl<D: DatabaseName> Database<D> {
+impl Database {
     /// Load database instance.
     /// This will create a new local database if none is found.
-    pub async fn load(encryption_key: String) -> Result<Self, crate::error::Error> {
-        let sqlite_file_path = format!(
-            "sqlite://{}",
-            crate::GLOBAL_CONFIG_PATH.join(D::NAME).display()
-        );
+    pub async fn load(
+        sqlite_file_path: &Path,
+        encryption_key: String,
+    ) -> Result<Self, crate::error::Error> {
+        let sqlite_file_path = format!("sqlite://{}", sqlite_file_path.display());
 
         tracing::info!("daemon sqlite: {sqlite_file_path}");
 
@@ -36,7 +30,6 @@ impl<D: DatabaseName> Database<D> {
 
         Ok(Self {
             sqlite_pool: sqlite::SqlitePool::connect_with(options).await?,
-            database_name: PhantomData,
         })
     }
 

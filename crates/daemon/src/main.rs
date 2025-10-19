@@ -1,5 +1,6 @@
 mod client;
 mod config;
+mod constants;
 mod database;
 mod middleware;
 mod service;
@@ -8,7 +9,6 @@ use crate::client::DaemonClient;
 use crate::config::ConfigManager;
 
 use clap::Parser;
-use shared_core::constants;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
@@ -44,8 +44,8 @@ struct Args {
 //noinspection DuplicatedCode
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    shared_core::tracing::init_subscriber("daemon")?;
-    shared_core::create_global_paths().await?;
+    shared_core::sys::init_tracing_subscriber(&constants::GLOBAL_CACHE_PATH.join("daemon"))?;
+    constants::create_global_paths().await?;
 
     let args = Args::parse();
 
@@ -54,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Install signal handler to listen for cancellation.
     // This is extremely important as some things rely on dependable `Drop` invocation.
-    let signal_handle = shared_core::signal::listen_for_cancellation(
+    let signal_handle = shared_core::sys::listen_for_cancellation(
         task_tracker.clone(),
         cancellation_token.clone(),
     )?;

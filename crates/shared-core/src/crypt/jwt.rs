@@ -1,7 +1,6 @@
-use crate::GLOBAL_CONFIG_PATH;
-
 use rsa::pkcs8::{DecodePrivateKey, EncodePrivateKey, EncodePublicKey};
 use std::marker::PhantomData;
+use std::path::Path;
 
 /// JWT encryption algorithm
 const JWT_ALGORITHM: jsonwebtoken::Algorithm = jsonwebtoken::Algorithm::RS256;
@@ -11,9 +10,6 @@ const RSA_BITS: usize = 512;
 
 /// Trait for providing specialised info about a Jwt Factor
 pub trait JwtFactoryMetadata {
-    /// Name of private key PEM
-    const RSA_PEM_PRIVATE: &'static str;
-
     /// Issuer
     const ISSUER: &'static str;
 }
@@ -29,9 +25,7 @@ pub struct JwtFactory<I: JwtFactoryMetadata> {
 impl<I: JwtFactoryMetadata> JwtFactory<I> {
     /// Create a new instance of the JWT factory.
     /// If an existing private/public key is found then it's loaded otherwise a new one is created and saved.
-    pub async fn new() -> Result<Self, tokio::io::Error> {
-        let rsa_private_path = GLOBAL_CONFIG_PATH.join(I::RSA_PEM_PRIVATE);
-
+    pub async fn new(rsa_private_path: &Path) -> Result<Self, tokio::io::Error> {
         // Try load private key from file or create it if it doesn't exist yet.
         let rsa_private_pem = if rsa_private_path.is_file() {
             tracing::info!("found rsa key: {}", &rsa_private_path.display());
@@ -138,8 +132,6 @@ HCC/me2tP9c=
     struct TestJwt;
 
     impl JwtFactoryMetadata for TestJwt {
-        const RSA_PEM_PRIVATE: &'static str = "test.pem";
-
         const ISSUER: &'static str = "test";
     }
 

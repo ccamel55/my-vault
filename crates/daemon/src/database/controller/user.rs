@@ -11,19 +11,18 @@ impl database::TableName for ControllerUser {
 
 impl ControllerUser {
     /// Register a new user
-    pub async fn register<A, B, C, D, E>(
-        database: &database::Database<A>,
-        email: B,
-        password: C,
-        first_name: D,
-        last_name: E,
+    pub async fn register<A, B, C, D>(
+        database: &database::Database,
+        email: A,
+        password: B,
+        first_name: C,
+        last_name: D,
     ) -> anyhow::Result<uuid::Uuid>
     where
-        A: database::DatabaseName,
+        A: ToString,
         B: ToString,
         C: ToString,
         D: ToString,
-        E: ToString,
     {
         // TODO Convert password into hashed blob that we store in database.
 

@@ -87,8 +87,6 @@ HCC/me2tP9c=
     struct TestJwt;
 
     impl JwtFactoryMetadata for TestJwt {
-        const RSA_PEM_PRIVATE: &'static str = "test.pem";
-
         const ISSUER: &'static str = "test";
     }
 
