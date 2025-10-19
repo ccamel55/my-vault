@@ -2,7 +2,7 @@
 CREATE TABLE users (
     uuid                BLOB NOT NULL UNIQUE,
     email               TEXT NOT NULL UNIQUE,
-    password_hash       BLOB NOT NULL,
+    password_hash       TEXT NOT NULL,
     first_name          VARCHAR(255) NOT NULL,
     last_name           VARCHAR(255) NOT NULL,
     salt                BLOB NOT NULL,

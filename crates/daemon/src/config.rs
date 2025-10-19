@@ -24,7 +24,7 @@ pub struct DatabaseConfig {
 impl Default for DatabaseConfig {
     fn default() -> Self {
         Self {
-            encryption_key: rng::random_string(DATABASE_ENCRYPTION_KEY_DEFAULT_LENGTH),
+            encryption_key: rng::random_bytes_str(DATABASE_ENCRYPTION_KEY_DEFAULT_LENGTH),
         }
     }
 }

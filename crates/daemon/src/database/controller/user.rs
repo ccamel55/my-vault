@@ -41,14 +41,14 @@ impl ControllerUser {
     ) -> anyhow::Result<view::User> {
         let config = self.config.config.read().await.encryption.clone();
 
-        let salt = rng::random_bytes(16);
+        let salt = rng::random_bytes_str(16);
         let password_hash = crypt::Argon2Factory::new(
             config.argon2_iters,
             config.argon2_memory_mb,
             config.argon2_parallelism,
         )
         .map_err(|e| anyhow::anyhow!(e))?
-        .encode(password.as_bytes(), &salt)
+        .encode(password.as_bytes(), salt.as_bytes())
         .await?;
 
         let data = view::User::new(

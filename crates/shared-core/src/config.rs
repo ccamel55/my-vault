@@ -137,7 +137,7 @@ mod tests {
         let config_path = PathBuf::from(env!("WORKSPACE_DIR"))
             .join("test-data")
             .join("temp")
-            .join(format!("{}.toml", rng::random_string(10)));
+            .join(format!("{}.toml", rng::random_bytes_str(10)));
 
         let result_save = config.save(&config_path).await;
         let result_load = LocalConfig::load(&config_path).await;
