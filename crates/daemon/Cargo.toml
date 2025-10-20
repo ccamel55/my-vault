@@ -15,7 +15,7 @@ lazy_static = { workspace = true }
 prost = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }
-tracing = { workspace = true }
+thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 tonic = { workspace = true }
@@ -23,6 +23,7 @@ tonic-health = { workspace = true }
 tonic-middleware = { workspace = true }
 tonic-prost = { workspace = true }
 tonic-reflection = { workspace = true }
+tracing = { workspace = true }
 uuid = { workspace = true }
 validator = { workspace = true }
 

@@ -92,6 +92,7 @@ TODO
 - update api to better represent MVC architecture and usage 
 - add tests for tonic using mock https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs
 
+- make config only update don't re-write the whole file
 - swap anyhow to defined errors
 - client for testing
 - integration tests

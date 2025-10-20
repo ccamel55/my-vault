@@ -1,6 +1,8 @@
 mod client;
 mod user;
 
+use crate::database::controller;
+
 use shared_service::{client_server, user_server};
 use std::sync::Arc;
 
@@ -40,4 +42,16 @@ pub async fn create_services(
         .routes();
 
     Ok(routes)
+}
+
+impl From<controller::ControllerError> for tonic::Status {
+    fn from(value: controller::ControllerError) -> Self {
+        match value {
+            controller::ControllerError::Cancelled(x) => Self::cancelled(x),
+            controller::ControllerError::Unknown(x) => Self::unknown(x),
+            controller::ControllerError::AlreadyExists(x) => Self::already_exists(x),
+            controller::ControllerError::PermissionDenied(x) => Self::permission_denied(x),
+            controller::ControllerError::Internal(x) => Self::internal(x),
+        }
+    }
 }

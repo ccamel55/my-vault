@@ -1,7 +1,5 @@
 use crate::{client, config, database};
 
-use shared_core::crypt;
-use shared_core::crypt::JwtFactoryMetadata;
 use shared_service::{
     AddRequest, AddResponse, AuthRequest, AuthResponse, RefreshRequest, RefreshResponse,
     user_server,
@@ -33,40 +31,24 @@ impl user_server::User for UserService {
 
     async fn refresh(
         &self,
-        _request: Request<RefreshRequest>,
+        request: Request<RefreshRequest>,
     ) -> Result<Response<RefreshResponse>, Status> {
-        todo!()
+        let req = request.into_inner();
+
+        let token_auth = self.controller.refresh(req.token_refresh).await?;
+        let res = RefreshResponse { token_auth };
+
+        Ok(Response::new(res))
     }
 
     async fn add(&self, request: Request<AddRequest>) -> Result<Response<AddResponse>, Status> {
         let req = request.into_inner();
 
-        // Make sure that user doesn't exist
-        self.controller
-            .exists(req.email.clone())
-            .await
-            .map_err(|_| Status::already_exists("user with email already exists"))?;
-
-        // Add user to our database
-        let entry = self
+        // Process request
+        let (token_auth, token_refresh) = self
             .controller
             .add(req.email, req.password, req.first_name, req.last_name)
-            .await
-            .map_err(|e| Status::unknown(e.to_string()))?;
-
-        // Generate JWT for user
-        let jwt_factory = self.controller.client.get_jwt_factory();
-
-        let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
-            client::DaemonClient::ISSUER,
-            entry.uuid.into_uuid(),
-            entry.email,
-        ));
-
-        let token_refresh = jwt_factory.encode(crypt::JwtClaimRefresh::new(
-            client::DaemonClient::ISSUER,
-            entry.uuid.into_uuid(),
-        ));
+            .await?;
 
         let res = AddResponse {
             token_auth,

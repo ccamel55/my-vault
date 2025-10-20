@@ -13,11 +13,11 @@ message AuthResponse {
 }
 
 message RefreshRequest {
-  string token_refresh = 2;
+  string token_refresh = 1;
 }
 
 message RefreshResponse {
-
+  string token_auth = 1;
 }
 
 message AddRequest {
