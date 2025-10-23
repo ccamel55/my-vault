@@ -2,9 +2,25 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/crates/cli/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/cli/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/daemon/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/daemon/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-old/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-old/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-types/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-core/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-types/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-message/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-message/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cli/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-service/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tui/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tui/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/shared-client/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/shared-core/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

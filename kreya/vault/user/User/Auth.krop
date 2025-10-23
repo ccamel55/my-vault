@@ -1,0 +1,13 @@
+{
+  "details": {
+    "methodFqn": "vault.user.User.Auth"
+  },
+  "requests": [
+    {
+      "location": "Auth-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc",
+  "importStreamId": "ecd4c4d4-49f2-4e31-a13a-9d1236b3c13b"
+}

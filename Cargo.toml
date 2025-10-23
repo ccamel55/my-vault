@@ -10,22 +10,38 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = { version = "1.0.99" }
-bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-bitwarden-crypto = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-bitwarden-encoding = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "5658d61f55255c987e60f50c2f08d8864a37d8ab" }
-clap = { version = "4.5.47" }
-crossterm = { version = "0.29.0" }
+argon2 = { version = "0.5.3" }
+chrono = { version = "0.4.42", features = ["serde"] }
+clap = { version = "4.5.47", features = ["derive", "env"] }
+config = { version = "0.15.18", default-features = false, features = ["convert-case", "toml"] }
 dirs = { version = "6.0.0" }
 futures = { version = "0.3.31" }
-inquire = { version = "0.7.5" }
+jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
 lazy_static = { version = "1.5.0" }
-ratatui = { version = "0.29.0" }
-serde = { version = "1.0.219" }
+libsqlite3-sys = { version = "=0.30.1", features = ["bundled-sqlcipher"] }
+prost = { version = "0.14.1" }
+rand = { version = "=0.8.5" }
+rsa = { version = "=0.9.8" }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = { version = "1.0.145" }
+signal-hook = { version = "0.3.18" }
+signal-hook-tokio = { version = "0.3.1", features = ["futures-v0_3"] }
+sqlx = { version = "=0.8.6",  features = ["runtime-tokio", "sqlite", "chrono", "json", "uuid"] }
+thiserror = { version = "2.0.17" }
+tokio = { version = "1.47.1", features = ["fs", "macros", "rt-multi-thread", "time", "signal", "sync"] }
+tokio-util = { version = "0.7.16", features = ["rt"] }
+toml = { version = "0.9.8", features = ["serde"] }
+tonic = { version = "0.14.2" }
+tonic-health = { version = "0.14.2" }
+tonic-middleware = { version = "0.4.0" }
+tonic-prost = { version = "0.14.2" }
+tonic-prost-build = { version = "0.14.2" }
+tonic-reflection = { version = "0.14.2" }
 tracing = { version = "0.1.41" }
 tracing-appender = { version = "0.2.3" }
-tracing-subscriber = { version = "0.3.20" }
-tokio = { version = "1.47.1" }
-tokio-util = { version = "0.7.16" }
-toml = { version = "0.9.5" }
-url = { version = "2.5.7" }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+uuid = { version = "1.18.1", features = ["v4", "serde"] }
+validator = { version = "0.20.0", features = ["derive"] }
+
+[profile.dev]
+opt-level = 3

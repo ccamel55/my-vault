@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package vault.user;
+
+message AuthRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  string token_auth = 1;
+  string token_refresh = 2;
+}
+
+message RefreshRequest {
+  string token_refresh = 1;
+}
+
+message RefreshResponse {
+  string token_auth = 1;
+}
+
+message AddRequest {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+}
+
+message AddResponse {
+  string token_auth = 1;
+  string token_refresh = 2;
+}
+
+service User {
+  // Authenticate a client for a specific user
+  rpc Auth(AuthRequest)
+      returns (AuthResponse);
+
+  // Refresh existing token for a specific user
+  rpc Refresh(RefreshRequest)
+      returns (RefreshResponse);
+
+  // Add a new user
+  rpc Add(AddRequest)
+      returns (AddResponse);
+}
