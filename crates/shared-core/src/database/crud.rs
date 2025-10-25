@@ -263,10 +263,10 @@ mod tests {
             super::read::<TestDatabase, TestRow>(&pool, vec![("name", "bob".into())]).await;
 
         let result_2 =
-            super::read::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())]).await;
+            super::read::<TestDatabase, TestRow>(&pool, vec![("name", "jeff".into())]).await;
 
         let result_3 =
-            super::read::<TestDatabase, TestRow>(&pool, vec![("dicks", "bob".into())]).await;
+            super::read::<TestDatabase, TestRow>(&pool, vec![("firstname", "larry".into())]).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_err());
@@ -283,8 +283,8 @@ mod tests {
     #[sqlx::test]
     async fn create(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
         let entry = TestRow {
-            name: "shit".into(),
-            password: "fuck".into(),
+            name: "jeffery".into(),
+            password: "steveiscool123".into(),
         };
 
         // Try insert duplicate entry
@@ -296,8 +296,8 @@ mod tests {
 
         let result_1 = result_1.unwrap();
 
-        assert_eq!(result_1.name, "shit");
-        assert_eq!(result_1.password, "fuck");
+        assert_eq!(result_1.name, "jeffery");
+        assert_eq!(result_1.password, "steveiscool123");
 
         Ok(())
     }
@@ -306,12 +306,12 @@ mod tests {
     async fn update(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
         let data_1 = TestRow {
             name: "bob".into(),
-            password: "tits".into(),
+            password: "bobthebuilder".into(),
         };
 
         let data_2 = TestRow {
-            name: "penis".into(),
-            password: "tits".into(),
+            name: "dog".into(),
+            password: "doglover".into(),
         };
 
         let result_1 =
@@ -319,7 +319,7 @@ mod tests {
                 .await;
 
         let result_2 =
-            super::update::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())], data_2)
+            super::update::<TestDatabase, TestRow>(&pool, vec![("name", "dog".into())], data_2)
                 .await;
 
         assert!(result_1.is_ok());
@@ -328,7 +328,7 @@ mod tests {
         let result_1 = result_1.unwrap();
 
         assert_eq!(result_1.name, "bob");
-        assert_eq!(result_1.password, "tits");
+        assert_eq!(result_1.password, "bobthebuilder");
 
         Ok(())
     }
@@ -339,7 +339,7 @@ mod tests {
             super::delete::<TestDatabase, TestRow>(&pool, vec![("name", "bob".into())]).await;
 
         let result_2 =
-            super::delete::<TestDatabase, TestRow>(&pool, vec![("name", "penis".into())]).await;
+            super::delete::<TestDatabase, TestRow>(&pool, vec![("name", "jeffery".into())]).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_err());
@@ -350,8 +350,8 @@ mod tests {
     #[sqlx::test]
     async fn exists(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
         let result_1 = super::exists::<TestDatabase>(&pool, vec![("name", "bob".into())]).await;
-        let result_2 = super::exists::<TestDatabase>(&pool, vec![("name", "penis".into())]).await;
-        let result_3 = super::exists::<TestDatabase>(&pool, vec![("dicks", "bob".into())]).await;
+        let result_2 = super::exists::<TestDatabase>(&pool, vec![("name", "jeff".into())]).await;
+        let result_3 = super::exists::<TestDatabase>(&pool, vec![("firstname", "larry".into())]).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_ok());
