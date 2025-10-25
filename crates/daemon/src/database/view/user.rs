@@ -5,13 +5,9 @@ use validator::Validate;
 pub struct User {
     #[serde(deserialize_with = "shared_core::serde::uuid::Hyphenated::deserialize")]
     pub uuid: uuid::fmt::Hyphenated,
-    #[validate(email)]
-    pub email: String,
+    #[validate(length(min = 3, max = 255))]
+    pub username: String,
     pub password_hash: String,
-    #[validate(length(min = 2, max = 255))]
-    pub first_name: String,
-    #[validate(length(min = 2, max = 255))]
-    pub last_name: String,
     pub salt: String,
     pub argon2_iters: u32,
     pub argon2_memory_mb: u32,
@@ -20,12 +16,10 @@ pub struct User {
 }
 
 impl User {
-    pub fn new<A, B, C, D, E>(
-        email: A,
+    pub fn new<A, B, C>(
+        username: A,
         password_hash: B,
-        first_name: C,
-        last_name: D,
-        salt: E,
+        salt: C,
         argon2_iters: u32,
         argon2_memory_mb: u32,
         argon2_parallelism: u32,
@@ -34,15 +28,11 @@ impl User {
         A: ToString,
         B: ToString,
         C: ToString,
-        D: ToString,
-        E: ToString,
     {
         let res = User {
             uuid: uuid::Uuid::new_v4().into(),
-            email: email.to_string(),
+            username: username.to_string(),
             password_hash: password_hash.to_string(),
-            first_name: first_name.to_string(),
-            last_name: last_name.to_string(),
             salt: salt.to_string(),
             argon2_iters,
             argon2_memory_mb,
@@ -66,8 +56,6 @@ mod tests {
         let res_ok = User::new(
             "hello@mail.com",
             "123456",
-            &"a".repeat(255),
-            &"b".repeat(255),
             rng::random_bytes_str(16),
             2,
             32,
@@ -76,94 +64,29 @@ mod tests {
 
         assert!(res_ok.is_ok());
 
-        let res_invalid_email = User::new(
-            "hello.com",
-            "123456",
-            "a".repeat(255),
-            "b".repeat(255),
-            rng::random_bytes_str(16),
-            2,
-            32,
-            2,
-        );
+        let res_username_to_short = User::new("h", "123456", rng::random_bytes_str(16), 2, 32, 2);
 
-        assert!(res_invalid_email.is_err());
+        assert!(res_username_to_short.is_err());
 
-        let res_invalid_email_err = res_invalid_email.unwrap_err();
+        let res_invalid_email_err = res_username_to_short.unwrap_err();
         let res_invalid_email_err = res_invalid_email_err.field_errors();
 
-        assert!(res_invalid_email_err.contains_key("email"));
+        assert!(res_invalid_email_err.contains_key("username"));
 
-        let res_fn_too_short = User::new(
-            "hello@mail.com",
-            "123456",
-            "a".repeat(1),
-            "b".repeat(255),
-            rng::random_bytes_str(16),
-            2,
-            32,
-            2,
-        );
-
-        assert!(res_fn_too_short.is_err());
-
-        let res_fn_too_short_err = res_fn_too_short.unwrap_err();
-        let res_fn_too_short_err = res_fn_too_short_err.field_errors();
-
-        assert!(res_fn_too_short_err.contains_key("first_name"));
-
-        let res_fn_too_long = User::new(
-            "hello@mail.com",
-            "123456",
+        let res_username_to_long = User::new(
             "a".repeat(256),
-            "b".repeat(255),
-            rng::random_bytes_str(16),
-            2,
-            32,
-            2,
-        );
-
-        assert!(res_fn_too_long.is_err());
-
-        let res_fn_too_long_err = res_fn_too_long.unwrap_err();
-        let res_fn_too_long_err = res_fn_too_long_err.field_errors();
-
-        assert!(res_fn_too_long_err.contains_key("first_name"));
-
-        let res_ln_too_short = User::new(
-            "hello@mail.com",
             "123456",
-            "a".repeat(255),
-            "b".repeat(1),
             rng::random_bytes_str(16),
             2,
             32,
             2,
         );
 
-        assert!(res_ln_too_short.is_err());
+        assert!(res_username_to_long.is_err());
 
-        let res_ln_too_short_err = res_ln_too_short.unwrap_err();
-        let res_ln_too_short_err = res_ln_too_short_err.field_errors();
+        let res_username_to_long = res_username_to_long.unwrap_err();
+        let res_username_to_long = res_username_to_long.field_errors();
 
-        assert!(res_ln_too_short_err.contains_key("last_name"));
-
-        let res_ln_too_long = User::new(
-            "hello@mail.com",
-            "123456",
-            "a".repeat(255),
-            "b".repeat(256),
-            rng::random_bytes_str(16),
-            2,
-            32,
-            2,
-        );
-
-        assert!(res_ln_too_long.is_err());
-
-        let res_ln_too_long_err = res_ln_too_long.unwrap_err();
-        let res_ln_too_long_err = res_ln_too_long_err.field_errors();
-
-        assert!(res_ln_too_long_err.contains_key("last_name"));
+        assert!(res_username_to_long.contains_key("username"));
     }
 }

@@ -6,3 +6,7 @@ from existing third-party services.
 ## Features
 - Encrypted database 
 - TCP or Unix socket transport
+
+## References
+
+- https://www.sqliteforum.com/p/implementing-role-based-access-control

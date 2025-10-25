@@ -3,7 +3,7 @@ syntax = "proto3";
 package vault.user;
 
 message AuthRequest {
-  string email = 1;
+  string username = 1;
   string password = 2;
 }
 
@@ -21,7 +21,7 @@ message RefreshResponse {
 }
 
 message AddRequest {
-  string email = 1;
+  string username = 1;
   string password = 2;
   string first_name = 3;
   string last_name = 4;

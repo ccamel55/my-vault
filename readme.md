@@ -81,7 +81,6 @@ brew install dbuf protobuf
 
 TODO
 
-
 ## References
 
 - https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pre-hashing-passwords
@@ -92,11 +91,10 @@ TODO
 
 ## Todo
 
-- update api to better represent MVC architecture and usage 
+- docker compose build
 - add tests for tonic using mock https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs
-
 - make config only update don't re-write the whole file
 - swap anyhow to defined errors
-- client for testing
+- add service integrations
 - integration tests
 

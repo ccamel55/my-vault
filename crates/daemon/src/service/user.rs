@@ -45,10 +45,7 @@ impl user_server::User for UserService {
         let req = request.into_inner();
 
         // Process request
-        let (token_auth, token_refresh) = self
-            .controller
-            .add(req.email, req.password, req.first_name, req.last_name)
-            .await?;
+        let (token_auth, token_refresh) = self.controller.add(req.username, req.password).await?;
 
         let res = AddResponse {
             token_auth,

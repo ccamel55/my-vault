@@ -23,10 +23,10 @@ impl ControllerUser {
         Self { config, client }
     }
 
-    /// Checks if user with email exists
-    pub async fn exists(&self, email: String) -> Result<bool, super::ControllerError> {
-        // Filter by email
-        let filter = vec![("email", email)];
+    /// Checks if user with username exists
+    pub async fn exists(&self, username: String) -> Result<bool, super::ControllerError> {
+        // Filter by username
+        let filter = vec![("username", username)];
         let result = database::exists::<Self>(self.client.get_database().get_pool(), filter)
             .await
             .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
@@ -58,7 +58,7 @@ impl ControllerUser {
         let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
             DaemonClient::ISSUER,
             user.uuid.into_uuid(),
-            user.email,
+            user.username,
         ));
 
         Ok(token_auth)
@@ -67,17 +67,15 @@ impl ControllerUser {
     /// Add a new user
     pub async fn add(
         &self,
-        email: String,
+        username: String,
         password: String,
-        first_name: String,
-        last_name: String,
     ) -> Result<(String, String), super::ControllerError> {
         // Make sure that user doesn't exist.
-        // If there is a user with the same identifier error as each email is assumed to be unique.
-        if self.exists(email.clone()).await? {
+        // If there is a user with the same identifier error as each username is assumed to be unique.
+        if self.exists(username.clone()).await? {
             return Err(super::ControllerError::AlreadyExists(format!(
-                "user with email {} already exists",
-                &email
+                "user with username {} already exists",
+                &username
             )));
         }
 
@@ -96,10 +94,8 @@ impl ControllerUser {
         .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
         let data = view::User::new(
-            email,
+            username,
             password_hash,
-            first_name,
-            last_name,
             salt,
             config.argon2_iters,
             config.argon2_memory_mb,
@@ -118,7 +114,7 @@ impl ControllerUser {
         let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
             DaemonClient::ISSUER,
             user.uuid.into_uuid(),
-            user.email,
+            user.username,
         ));
 
         let token_refresh = jwt_factory.encode(crypt::JwtClaimRefresh::new(
