@@ -13,12 +13,15 @@ under the same service.
 
 ### Use case
 
+**IT IS EXTREMELY IMPORTANT THAT THIS SERVICE IS NOT EXPOSED PUBLICLY**
+
 The connector is designed to be hosted and used in a trusted communication network. 
 The currently supported methods being; private network using TCP or localhost using
 unix sockets. 
 
-**IT IS EXTREMELY IMPORTANT THAT THIS SERVICE IS NOT EXPOSED PUBLICLY**
+#### Example: Host and Guest VM 
 
+#### Example: 
 
 ### Why a connector service?
 
