@@ -351,7 +351,8 @@ mod tests {
     async fn exists(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
         let result_1 = super::exists::<TestDatabase>(&pool, vec![("name", "bob".into())]).await;
         let result_2 = super::exists::<TestDatabase>(&pool, vec![("name", "jeff".into())]).await;
-        let result_3 = super::exists::<TestDatabase>(&pool, vec![("firstname", "larry".into())]).await;
+        let result_3 =
+            super::exists::<TestDatabase>(&pool, vec![("firstname", "larry".into())]).await;
 
         assert!(result_1.is_ok());
         assert!(result_2.is_ok());

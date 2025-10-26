@@ -1,7 +1,11 @@
 mod client;
+mod collection;
+mod secrets;
 mod user;
 
 pub use client::*;
+pub use collection::*;
+pub use secrets::*;
 pub use user::*;
 
 /// Error which represents status code.

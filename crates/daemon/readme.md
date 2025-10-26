@@ -10,3 +10,4 @@ from existing third-party services.
 ## References
 
 - https://www.sqliteforum.com/p/implementing-role-based-access-control
+- https://www.sqliteforum.com/p/mastering-role-based-access-control

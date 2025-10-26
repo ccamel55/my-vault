@@ -13,8 +13,11 @@ pub async fn create_services(
 ) -> anyhow::Result<tonic::service::Routes> {
     let mw_auth = crate::middleware::Authentication::new(client.clone())?;
 
-    let service_user = user::UserService::new(config.clone(), client.clone())?;
-    let service_client = client::ClientService::new(client.clone())?;
+    let controller_client = controller::ControllerClient::new(client.clone());
+    let controller_user = controller::ControllerUser::new(config.clone(), client.clone());
+
+    let service_client = client::ClientService::new(controller_client)?;
+    let service_user = user::UserService::new(controller_user)?;
 
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(shared_service::FILE_DESCRIPTOR_SET)

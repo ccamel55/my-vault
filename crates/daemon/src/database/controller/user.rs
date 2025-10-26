@@ -125,3 +125,6 @@ impl ControllerUser {
         Ok((token_auth, token_refresh))
     }
 }
+
+#[cfg(test)]
+mod tests {}

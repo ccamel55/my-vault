@@ -1,24 +1,20 @@
-use crate::{client, config, database};
+use crate::database;
 
 use shared_service::{
     AddRequest, AddResponse, AuthRequest, AuthResponse, RefreshRequest, RefreshResponse,
     user_server,
 };
-use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug, Clone)]
 pub struct UserService {
-    controller: database::controller::ControllerUser,
+    controller_user: database::controller::ControllerUser,
 }
 
 impl UserService {
-    pub fn new(
-        config: Arc<config::ConfigManager>,
-        client: Arc<client::DaemonClient>,
-    ) -> anyhow::Result<Self> {
+    pub fn new(controller_user: database::controller::ControllerUser) -> anyhow::Result<Self> {
         Ok(Self {
-            controller: database::controller::ControllerUser::new(config, client),
+            controller_user: controller_user.clone(),
         })
     }
 }
@@ -35,7 +31,7 @@ impl user_server::User for UserService {
     ) -> Result<Response<RefreshResponse>, Status> {
         let req = request.into_inner();
 
-        let token_auth = self.controller.refresh(req.token_refresh).await?;
+        let token_auth = self.controller_user.refresh(req.token_refresh).await?;
         let res = RefreshResponse { token_auth };
 
         Ok(Response::new(res))
@@ -45,7 +41,8 @@ impl user_server::User for UserService {
         let req = request.into_inner();
 
         // Process request
-        let (token_auth, token_refresh) = self.controller.add(req.username, req.password).await?;
+        let (token_auth, token_refresh) =
+            self.controller_user.add(req.username, req.password).await?;
 
         let res = AddResponse {
             token_auth,
