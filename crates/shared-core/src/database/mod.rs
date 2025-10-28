@@ -11,6 +11,14 @@ pub struct Database {
     sqlite_pool: sqlite::SqlitePool,
 }
 
+impl From<sqlite::SqlitePool> for Database {
+    fn from(sqlite_pool: sqlite::SqlitePool) -> Self {
+        Self {
+            sqlite_pool
+        }
+    }
+}
+
 impl Database {
     /// Load database instance.
     /// This will create a new local database if none is found.

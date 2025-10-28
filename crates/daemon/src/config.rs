@@ -1,4 +1,5 @@
 use crate::constants;
+
 use shared_core::{config, rng};
 use tokio::sync::RwLock;
 
@@ -58,9 +59,22 @@ pub type LocalConfig = config::LocalConfig<Config>;
 pub struct ConfigManager {
     /// Main config file
     pub config: RwLock<LocalConfig>,
+
+    /// Read only config file
+    read_only: bool,
 }
 
 impl ConfigManager {
+    #[cfg(test)]
+    pub fn mocked() -> Self {
+        let config = LocalConfig::default();
+
+        Self {
+            config: RwLock::new(config),
+            read_only: true,
+        }
+    }
+
     pub async fn load() -> anyhow::Result<Self> {
         let config = LocalConfig::load(
             constants::GLOBAL_CONFIG_PATH
@@ -71,10 +85,15 @@ impl ConfigManager {
 
         Ok(Self {
             config: RwLock::new(config),
+            read_only: false,
         })
     }
 
     pub async fn save(&self) -> anyhow::Result<()> {
+        if self.read_only {
+            return Err(anyhow::anyhow!("tried to save read only config"));
+        }
+
         self.config
             .write()
             .await
