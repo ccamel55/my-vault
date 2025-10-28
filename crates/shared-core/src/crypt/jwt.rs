@@ -14,6 +14,13 @@ pub trait JwtFactoryMetadata {
     const ISSUER: &'static str;
 }
 
+/// Trait for providing claim audience.
+/// This is useful for defining specific token types.
+pub trait JwtClaimMetadata {
+    /// Audience.
+    const AUDIENCE: &'static str;
+}
+
 /// Jwt factory
 #[derive(Debug)]
 pub struct JwtFactory<I: JwtFactoryMetadata> {
@@ -83,6 +90,7 @@ impl<I: JwtFactoryMetadata> JwtFactory<I> {
     pub fn encode<T>(&self, claims: T) -> String
     where
         T: serde::ser::Serialize,
+        T: JwtClaimMetadata,
     {
         let header = jsonwebtoken::Header::new(JWT_ALGORITHM);
 
@@ -93,11 +101,13 @@ impl<I: JwtFactoryMetadata> JwtFactory<I> {
     pub fn decode<T>(&self, token: &str) -> Result<T, jsonwebtoken::errors::Error>
     where
         T: serde::de::DeserializeOwned + Clone,
+        T: JwtClaimMetadata,
     {
         let mut validator = jsonwebtoken::Validation::new(JWT_ALGORITHM);
 
         validator.validate_exp = true;
         validator.set_issuer(&[I::ISSUER]);
+        validator.set_audience(&[T::AUDIENCE]);
 
         jsonwebtoken::decode(token, &self.key_public, &validator).map(|x| x.claims)
     }
@@ -105,7 +115,7 @@ impl<I: JwtFactoryMetadata> JwtFactory<I> {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypt::{JwtClaimAccess, JwtFactory, JwtFactoryMetadata};
+    use crate::crypt::{JwtClaimAccess, JwtClaimMetadata, JwtFactory, JwtFactoryMetadata};
 
     const RSA_PEM_PKCS_1: &str = "-----BEGIN RSA PRIVATE KEY-----
 MIIBOwIBAAJBAMh6bx7LiHQi5PTZ/jpyWIsMXJRZo68+4E3ngi6GAuBAKMyVKBdc
@@ -162,6 +172,7 @@ HCC/me2tP9c=
             iss: TestJwt::ISSUER.into(),
             sub: "hello".into(),
             exp: 0,
+            aud: JwtClaimAccess::AUDIENCE.into(),
             email: "hello@mail.com".into(),
         });
 

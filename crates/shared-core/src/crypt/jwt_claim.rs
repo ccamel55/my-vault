@@ -1,3 +1,5 @@
+use crate::crypt::JwtClaimMetadata;
+
 use std::ops::Add;
 
 lazy_static::lazy_static! {
@@ -21,6 +23,8 @@ pub struct JwtClaimAccess {
     pub sub: String,
     // (expiration time): Time after which the JWT expires
     pub exp: i64,
+    // (audience): Intended audience of the JWT
+    pub aud: String,
 
     // Preferred e-mail address
     pub email: String,
@@ -38,9 +42,14 @@ impl JwtClaimAccess {
             exp: chrono::offset::Utc::now()
                 .add(*DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN)
                 .timestamp(),
+            aud: Self::AUDIENCE.into(),
             email: email.to_string(),
         }
     }
+}
+
+impl JwtClaimMetadata for JwtClaimAccess {
+    const AUDIENCE: &'static str = "access";
 }
 
 /// Claim for refresh tokens.
@@ -52,6 +61,8 @@ pub struct JwtClaimRefresh {
     pub sub: String,
     // (expiration time): Time after which the JWT expires
     pub exp: i64,
+    // (audience): Intended audience of the JWT
+    pub aud: String,
 }
 
 impl JwtClaimRefresh {
@@ -65,8 +76,13 @@ impl JwtClaimRefresh {
             exp: chrono::offset::Utc::now()
                 .add(*DEFAULT_EXPIRATION_TIME_REFRESH_TOKEN)
                 .timestamp(),
+            aud: Self::AUDIENCE.into(),
         }
     }
+}
+
+impl JwtClaimMetadata for JwtClaimRefresh {
+    const AUDIENCE: &'static str = "refresh";
 }
 
 #[cfg(test)]
