@@ -31,4 +31,8 @@ pub enum ControllerError {
     /// `tonic::status::Code::Internal`
     #[error("{0}")]
     Internal(String),
+
+    /// `tonic::status::Code::NotFound`
+    #[error("{0}")]
+    NotFound(String),
 }

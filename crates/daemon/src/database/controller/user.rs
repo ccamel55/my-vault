@@ -37,6 +37,62 @@ impl ControllerUser {
         Ok(result)
     }
 
+    /// Authenticate a given user.
+    pub async fn auth(
+        &self,
+        username: String,
+        password: String,
+    ) -> Result<(String, String), super::ControllerError> {
+        // Make sure that user with given username exists.
+        if !self.exists(username.clone()).await? {
+            return Err(super::ControllerError::NotFound(
+                "could not find user, make sure username and password are correct".to_string(),
+            ));
+        }
+
+        // Fetch user but only to get argon 2 parameters.
+        let filter = vec![("username", username.to_string())];
+        let user =
+            database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
+                .await
+                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+
+        // Generate password hash based on current password.
+        let salt = user.salt;
+        let password_hash = crypt::Argon2Factory::new(
+            user.argon2_iters,
+            user.argon2_memory_mb,
+            user.argon2_parallelism,
+        )
+        .map_err(|e| super::ControllerError::Internal(e.to_string()))?
+        .encode(password.as_bytes(), salt.as_bytes())
+        .await
+        .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
+
+        // Check if passwords match.
+        if password_hash != user.password_hash {
+            return Err(super::ControllerError::NotFound(
+                "could not find user, make sure username and password are correct".to_string(),
+            ));
+        }
+
+        let jwt_factory = self.client.get_jwt_factory();
+
+        let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
+            DaemonClient::ISSUER,
+            user.uuid.into_uuid(),
+            user.username,
+        ));
+
+        let token_refresh = jwt_factory.encode(crypt::JwtClaimRefresh::new(
+            DaemonClient::ISSUER,
+            user.uuid.into_uuid(),
+        ));
+
+        Ok((token_auth, token_refresh))
+    }
+
+    /// Generate new auth token from refresh token.
     pub async fn refresh(&self, token_refresh: String) -> Result<String, super::ControllerError> {
         let jwt_factory = self.client.get_jwt_factory();
 
@@ -67,7 +123,7 @@ impl ControllerUser {
         Ok(token_auth)
     }
 
-    /// Add a new user
+    /// Add a new user.
     pub async fn add(
         &self,
         username: String,
@@ -164,6 +220,44 @@ mod tests {
 
         assert!(result_exists.is_ok());
         assert_eq!(result_exists.unwrap(), true);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn auth(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
+        let config = config::ConfigManager::mocked();
+        let client = client::DaemonClient::mocked(pool)
+            .await
+            .expect("could not create mocked client");
+
+        let controller = ControllerUser::new(Arc::new(config), Arc::new(client));
+
+        // Add a new user to get tokens
+        let result_add = controller
+            .add("carl".to_string(), "carl-loves-cars1234".to_string())
+            .await;
+
+        assert!(result_add.is_ok());
+
+        // Try auth with incorrect user
+        let result_1 = controller
+            .auth("bob".into(), "carl-loves-cars1234".to_string())
+            .await;
+
+        // Try auth with incorrect password
+        let result_2 = controller
+            .auth("carl".into(), "carl-loves-boats".to_string())
+            .await;
+
+        // Correct auth
+        let result_ok = controller
+            .auth("carl".into(), "carl-loves-cars1234".to_string())
+            .await;
+
+        assert!(result_1.is_err());
+        assert!(result_2.is_err());
+        assert!(result_ok.is_ok());
 
         Ok(())
     }

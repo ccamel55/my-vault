@@ -37,7 +37,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("shared-service-descriptors.bin");
 
     // We have to manually include the protobuf files we want to use.
-    // todo: search through directory and add all protobuf files automatically
     let files = get_files_recursive(
         &include_path,
         &HashSet::from_iter(vec!["proto", "protobuf"]),

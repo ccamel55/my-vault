@@ -21,8 +21,21 @@ impl UserService {
 
 #[tonic::async_trait]
 impl user_server::User for UserService {
-    async fn auth(&self, _request: Request<AuthRequest>) -> Result<Response<AuthResponse>, Status> {
-        todo!()
+    async fn auth(&self, request: Request<AuthRequest>) -> Result<Response<AuthResponse>, Status> {
+        let req = request.into_inner();
+
+        // Process request
+        let (token_auth, token_refresh) = self
+            .controller_user
+            .auth(req.username, req.password)
+            .await?;
+
+        let res = AuthResponse {
+            token_auth,
+            token_refresh,
+        };
+
+        Ok(Response::new(res))
     }
 
     async fn refresh(

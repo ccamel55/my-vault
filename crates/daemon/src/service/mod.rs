@@ -55,6 +55,7 @@ impl From<controller::ControllerError> for tonic::Status {
             controller::ControllerError::AlreadyExists(x) => Self::already_exists(x),
             controller::ControllerError::PermissionDenied(x) => Self::permission_denied(x),
             controller::ControllerError::Internal(x) => Self::internal(x),
+            controller::ControllerError::NotFound(x) => Self::not_found(x),
         }
     }
 }
