@@ -66,7 +66,7 @@ struct UserResponseGet {
 
 #[OpenApi(prefix_path = "/user")]
 impl UserService {
-    /// Login with existing user credentials
+    /// Login
     #[oai(path = "/login", method = "post")]
     async fn login(
         &self,
@@ -87,7 +87,7 @@ impl UserService {
         Ok(Json(res))
     }
 
-    /// Generate a new auth token from an existing refresh token
+    /// Refresh
     #[oai(path = "/refresh", method = "post")]
     async fn refresh(
         &self,
@@ -101,7 +101,7 @@ impl UserService {
         Ok(Json(res))
     }
 
-    /// Register a new user.
+    /// Register New user
     #[oai(path = "/", method = "post")]
     async fn user_create(
         &self,
@@ -122,8 +122,7 @@ impl UserService {
         Ok(Json(res))
     }
 
-    /// Get information about a given user.
-    /// note: This endpoint requires a valid auth token.
+    /// Existing User Info
     #[oai(path = "/:username", method = "get")]
     async fn user_info(
         &self,
@@ -135,8 +134,7 @@ impl UserService {
         ))
     }
 
-    /// Delete a given user.
-    /// note: This endpoint requires a valid auth token.
+    /// Delete User
     #[oai(path = "/:username", method = "delete")]
     async fn user_delete(
         &self,

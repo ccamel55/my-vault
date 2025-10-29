@@ -24,7 +24,7 @@ struct InfoResponseGet {
 
 #[OpenApi(prefix_path = "/client")]
 impl ClientService {
-    /// Get info about client.
+    /// Client Info
     #[oai(path = "/info", method = "get")]
     async fn info_get(
         &self,

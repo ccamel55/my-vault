@@ -64,11 +64,8 @@ async fn main() -> anyhow::Result<()> {
         // Tcp requires no cleanup
         close_fn = None;
 
-        // Create tcp listener stream
-        tracing::info!("tcp address: {}", &tcp_address);
-
         let tcp = poem::listener::TcpListener::bind(&tcp_address);
-        let app = service::create_services(config.clone(), client).await?;
+        let app = service::create_services(false, config.clone(), client).await?;
 
         poem::Server::new(tcp)
             .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
@@ -105,11 +102,8 @@ async fn main() -> anyhow::Result<()> {
                 }
             });
 
-            // Create unix listener stream
-            tracing::info!("uds socket: {}", &uds_socket_path.display());
-
             let uds = poem::listener::UnixListener::bind(&uds_socket_path);
-            let app = service::create_services(config.clone(), client).await?;
+            let app = service::create_services(true, config.clone(), client).await?;
 
             poem::Server::new(uds)
                 .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
