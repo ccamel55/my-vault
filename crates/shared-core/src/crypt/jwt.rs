@@ -173,7 +173,7 @@ HCC/me2tP9c=
             sub: "hello".into(),
             exp: 0,
             aud: JwtClaimAccess::AUDIENCE.into(),
-            email: "hello@mail.com".into(),
+            username: "hello@mail.com".into(),
         });
 
         let expired_jwt = jwt.decode::<JwtClaimAccess>(&expired_jwt);

@@ -26,12 +26,12 @@ pub struct JwtClaimAccess {
     // (audience): Intended audience of the JWT
     pub aud: String,
 
-    // Preferred e-mail address
-    pub email: String,
+    // Username
+    pub username: String,
 }
 
 impl JwtClaimAccess {
-    pub fn new<A, B>(issuer: A, user_id: uuid::Uuid, email: B) -> Self
+    pub fn new<A, B>(issuer: A, user_id: uuid::Uuid, username: B) -> Self
     where
         A: ToString,
         B: ToString,
@@ -43,7 +43,7 @@ impl JwtClaimAccess {
                 .add(*DEFAULT_EXPIRATION_TIME_ACCESS_TOKEN)
                 .timestamp(),
             aud: Self::AUDIENCE.into(),
-            email: email.to_string(),
+            username: username.to_string(),
         }
     }
 }
@@ -124,7 +124,7 @@ HCC/me2tP9c=
 
         assert_eq!(access_jwt.iss, TestJwt::ISSUER);
         assert_eq!(access_jwt.sub, uuid.to_string());
-        assert_eq!(access_jwt.email, "hello@mail.com");
+        assert_eq!(access_jwt.username, "hello@mail.com");
     }
 
     #[tokio::test]
