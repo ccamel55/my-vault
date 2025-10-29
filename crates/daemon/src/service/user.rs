@@ -1,6 +1,5 @@
 use crate::{controller, middleware};
 
-use poem::http::HeaderMap;
 use poem_openapi::param::Path;
 use poem_openapi::payload::Json;
 use poem_openapi::{Object, OpenApi};
@@ -72,7 +71,7 @@ impl UserService {
     async fn login(
         &self,
         request: Json<LoginRequestPost>,
-    ) -> Result<Json<LoginResponsePost>, super::Error> {
+    ) -> poem::Result<Json<LoginResponsePost>> {
         let request = request.0;
 
         let (token_auth, token_refresh) = self
@@ -93,7 +92,7 @@ impl UserService {
     async fn refresh(
         &self,
         request: Json<RefreshRequestPost>,
-    ) -> Result<Json<RefreshResponsePost>, super::Error> {
+    ) -> poem::Result<Json<RefreshResponsePost>> {
         let request = request.0;
 
         let token_auth = self.controller_user.refresh(request.token_refresh).await?;
@@ -107,7 +106,7 @@ impl UserService {
     async fn user_create(
         &self,
         request: Json<UserRequestPost>,
-    ) -> Result<Json<UserResponsePost>, super::Error> {
+    ) -> poem::Result<Json<UserResponsePost>> {
         let request = request.0;
 
         let (token_auth, token_refresh) = self
@@ -130,8 +129,10 @@ impl UserService {
         &self,
         _user: middleware::JwtAuthorization,
         _username: Path<String>,
-    ) -> Result<Json<UserResponseGet>, super::Error> {
-        Err(super::Error::NotImplemented)
+    ) -> poem::Result<Json<UserResponseGet>> {
+        Err(poem::Error::from_status(
+            poem::http::StatusCode::NOT_IMPLEMENTED,
+        ))
     }
 
     /// Delete a given user.
@@ -141,7 +142,9 @@ impl UserService {
         &self,
         _user: middleware::JwtAuthorization,
         _username: Path<String>,
-    ) -> Result<(), super::Error> {
-        Err(super::Error::NotImplemented)
+    ) -> poem::Result<()> {
+        Err(poem::Error::from_status(
+            poem::http::StatusCode::NOT_IMPLEMENTED,
+        ))
     }
 }

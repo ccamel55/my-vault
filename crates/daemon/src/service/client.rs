@@ -29,7 +29,7 @@ impl ClientService {
     async fn info_get(
         &self,
         _user: middleware::JwtAuthorization,
-    ) -> Result<Json<InfoResponseGet>, super::Error> {
+    ) -> poem::Result<Json<InfoResponseGet>> {
         let time_start = *self.controller_client.client.get_time_started();
         let time_elapsed = chrono::Utc::now() - time_start;
 

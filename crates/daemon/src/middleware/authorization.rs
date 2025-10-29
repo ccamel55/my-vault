@@ -19,13 +19,14 @@ pub struct User {
     key_name = "Authorization",
     checker = "check_jwt"
 )]
-pub struct JwtAuthorization(pub(crate) User);
+pub struct JwtAuthorization(pub User);
 
 async fn check_jwt(
     request: &poem::Request,
     bearer: poem_openapi::auth::Bearer,
 ) -> poem::Result<User> {
-    // Note: poem's data is not zero cost. if performance is bad we have to switch frameworks again...
+    // Poem's data is not zero cost.
+    // If performance is bad we have to switch frameworks again...
     let client: Arc<DaemonClient> = request.data().cloned().ok_or(poem::Error::from_status(
         poem::http::StatusCode::INTERNAL_SERVER_ERROR,
     ))?;
@@ -40,6 +41,6 @@ async fn check_jwt(
         uuid: uuid::fmt::Hyphenated::from_str(&jwt_decode.sub)
             .unwrap()
             .into_uuid(),
-        username: jwt_decode.email,
+        username: jwt_decode.username,
     })
 }
