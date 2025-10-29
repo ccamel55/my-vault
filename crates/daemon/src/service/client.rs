@@ -1,15 +1,15 @@
-use crate::database;
+use crate::controller;
 
 use shared_service::{InfoResponse, client_server};
 use tonic::{Request, Response, Status};
 
 #[derive(Debug, Clone)]
 pub struct ClientService {
-    controller_client: database::controller::ControllerClient,
+    controller_client: controller::ControllerClient,
 }
 
 impl ClientService {
-    pub fn new(controller_client: database::controller::ControllerClient) -> anyhow::Result<Self> {
+    pub fn new(controller_client: controller::ControllerClient) -> anyhow::Result<Self> {
         Ok(Self {
             controller_client: controller_client.clone(),
         })

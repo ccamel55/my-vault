@@ -60,8 +60,7 @@ impl Secret {
 
 #[cfg(test)]
 mod tests {
-    use super::Secret;
-    use crate::database::view::SecretType;
+    use super::{Secret, SecretType};
 
     #[tokio::test]
     async fn new_secret() {

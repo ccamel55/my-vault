@@ -1,6 +1,6 @@
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
-use crate::database::view;
+use crate::view;
 
 use shared_core::crypt::JwtFactoryMetadata;
 use shared_core::{crypt, database, rng};
@@ -187,7 +187,7 @@ impl ControllerUser {
 
 #[cfg(test)]
 mod tests {
-    use crate::database::controller::ControllerUser;
+    use crate::controller::ControllerUser;
     use crate::{client, config};
 
     use sqlx::sqlite;

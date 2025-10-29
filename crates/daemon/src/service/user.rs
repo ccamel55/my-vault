@@ -1,4 +1,4 @@
-use crate::database;
+use crate::controller;
 
 use shared_service::{
     AddRequest, AddResponse, AuthRequest, AuthResponse, RefreshRequest, RefreshResponse,
@@ -8,11 +8,11 @@ use tonic::{Request, Response, Status};
 
 #[derive(Debug, Clone)]
 pub struct UserService {
-    controller_user: database::controller::ControllerUser,
+    controller_user: controller::ControllerUser,
 }
 
 impl UserService {
-    pub fn new(controller_user: database::controller::ControllerUser) -> anyhow::Result<Self> {
+    pub fn new(controller_user: controller::ControllerUser) -> anyhow::Result<Self> {
         Ok(Self {
             controller_user: controller_user.clone(),
         })

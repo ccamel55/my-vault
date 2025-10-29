@@ -4,13 +4,13 @@ use validator::Validate;
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub enum SourceType {
     Unknown = 0,
-    CSV = 1,
+    Csv = 1,
 }
 
 impl From<u32> for SourceType {
     fn from(value: u32) -> Self {
         match value {
-            1 => Self::CSV,
+            1 => Self::Csv,
             _ => Self::Unknown,
         }
     }
@@ -84,7 +84,7 @@ mod tests {
         let res_ok = Source::new(
             "bob",
             Some("information from bob".to_string()),
-            SourceType::CSV as u32,
+            SourceType::Csv as u32,
             None,
             SourceAuthType::None as u32,
         );
@@ -94,7 +94,7 @@ mod tests {
         let res_username_to_short = Source::new(
             "b",
             Some("information from bob".to_string()),
-            SourceType::CSV as u32,
+            SourceType::Csv as u32,
             None,
             SourceAuthType::None as u32,
         );
@@ -109,7 +109,7 @@ mod tests {
         let res_username_to_long = Source::new(
             "b".repeat(256),
             Some("information from bob".to_string()),
-            SourceType::CSV as u32,
+            SourceType::Csv as u32,
             None,
             SourceAuthType::None as u32,
         );

@@ -1,7 +1,7 @@
 mod client;
 mod user;
 
-use crate::database::controller;
+use crate::controller;
 
 use shared_service::{client_server, user_server};
 use std::sync::Arc;
