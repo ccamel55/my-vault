@@ -3,15 +3,15 @@ use crate::config::ConfigManager;
 use shared_core::database;
 use std::sync::Arc;
 
-/// Collections controller
+/// Secrets controller
 #[derive(Debug, Clone)]
-pub struct ControllerCollection {
+pub struct ControllerSource {
     pub(crate) config: Arc<ConfigManager>,
     pub(crate) client: Arc<DaemonClient>,
 }
 
-impl database::TableName for ControllerCollection {
-    const NAME: &'static str = "collections";
+impl database::TableName for ControllerSource {
+    const NAME: &'static str = "sources";
 }
 
 #[cfg(test)]

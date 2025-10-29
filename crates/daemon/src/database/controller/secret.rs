@@ -5,12 +5,12 @@ use std::sync::Arc;
 
 /// Secrets controller
 #[derive(Debug, Clone)]
-pub struct ControllerSecrets {
+pub struct ControllerSecret {
     pub(crate) config: Arc<ConfigManager>,
     pub(crate) client: Arc<DaemonClient>,
 }
 
-impl database::TableName for ControllerSecrets {
+impl database::TableName for ControllerSecret {
     const NAME: &'static str = "secrets";
 }
 

@@ -13,9 +13,7 @@ pub struct Database {
 
 impl From<sqlite::SqlitePool> for Database {
     fn from(sqlite_pool: sqlite::SqlitePool) -> Self {
-        Self {
-            sqlite_pool
-        }
+        Self { sqlite_pool }
     }
 }
 
