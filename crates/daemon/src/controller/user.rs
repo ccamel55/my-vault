@@ -29,7 +29,7 @@ impl ControllerUser {
         let filter = vec![("username", username)];
         let result = database::exists::<Self>(self.client.get_database().get_pool(), filter)
             .await
-            .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+            .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
         Ok(result)
     }
@@ -52,7 +52,7 @@ impl ControllerUser {
         let user =
             database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
                 .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+                .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
         // Generate password hash based on current password.
         let salt = user.salt;
@@ -108,7 +108,7 @@ impl ControllerUser {
         let user =
             database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
                 .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+                .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
         // Generate new auth token
         let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
@@ -163,7 +163,7 @@ impl ControllerUser {
         let user =
             database::create::<Self, view::User>(self.client.get_database().get_pool(), data)
                 .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+                .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
         let jwt_factory = self.client.get_jwt_factory();
 

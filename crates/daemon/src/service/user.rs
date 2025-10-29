@@ -1,10 +1,9 @@
-use crate::controller;
+use crate::{controller, middleware};
 
-use shared_service::{
-    AddRequest, AddResponse, AuthRequest, AuthResponse, RefreshRequest, RefreshResponse,
-    user_server,
-};
-use tonic::{Request, Response, Status};
+use poem::http::HeaderMap;
+use poem_openapi::param::Path;
+use poem_openapi::payload::Json;
+use poem_openapi::{Object, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct UserService {
@@ -19,49 +18,130 @@ impl UserService {
     }
 }
 
-#[tonic::async_trait]
-impl user_server::User for UserService {
-    async fn auth(&self, request: Request<AuthRequest>) -> Result<Response<AuthResponse>, Status> {
-        let req = request.into_inner();
+/// Login request - POST
+#[derive(Debug, Clone, Object)]
+struct LoginRequestPost {
+    username: String,
+    password: String,
+}
 
-        // Process request
+/// Login response - POST
+#[derive(Debug, Clone, Object)]
+struct LoginResponsePost {
+    token_auth: String,
+    token_refresh: String,
+}
+
+/// Refresh request - POST
+#[derive(Debug, Clone, Object)]
+struct RefreshRequestPost {
+    token_refresh: String,
+}
+
+/// Refresh response - POST
+#[derive(Debug, Clone, Object)]
+struct RefreshResponsePost {
+    token_auth: String,
+}
+
+/// User request - POST
+#[derive(Debug, Clone, Object)]
+struct UserRequestPost {
+    username: String,
+    password: String,
+}
+
+/// User response - POST
+#[derive(Debug, Clone, Object)]
+struct UserResponsePost {
+    token_auth: String,
+    token_refresh: String,
+}
+
+/// User response - GET
+#[derive(Debug, Clone, Object)]
+struct UserResponseGet {
+    uuid: uuid::Uuid,
+    name: String,
+}
+
+#[OpenApi(prefix_path = "/user")]
+impl UserService {
+    /// Login with existing user credentials
+    #[oai(path = "/login", method = "post")]
+    async fn login(
+        &self,
+        request: Json<LoginRequestPost>,
+    ) -> Result<Json<LoginResponsePost>, super::Error> {
+        let request = request.0;
+
         let (token_auth, token_refresh) = self
             .controller_user
-            .auth(req.username, req.password)
+            .auth(request.username, request.password)
             .await?;
 
-        let res = AuthResponse {
+        let res = LoginResponsePost {
             token_auth,
             token_refresh,
         };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
     }
 
+    /// Generate a new auth token from an existing refresh token
+    #[oai(path = "/refresh", method = "post")]
     async fn refresh(
         &self,
-        request: Request<RefreshRequest>,
-    ) -> Result<Response<RefreshResponse>, Status> {
-        let req = request.into_inner();
+        request: Json<RefreshRequestPost>,
+    ) -> Result<Json<RefreshResponsePost>, super::Error> {
+        let request = request.0;
 
-        let token_auth = self.controller_user.refresh(req.token_refresh).await?;
-        let res = RefreshResponse { token_auth };
+        let token_auth = self.controller_user.refresh(request.token_refresh).await?;
+        let res = RefreshResponsePost { token_auth };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
     }
 
-    async fn add(&self, request: Request<AddRequest>) -> Result<Response<AddResponse>, Status> {
-        let req = request.into_inner();
+    /// Register a new user.
+    #[oai(path = "/", method = "post")]
+    async fn user_create(
+        &self,
+        request: Json<UserRequestPost>,
+    ) -> Result<Json<UserResponsePost>, super::Error> {
+        let request = request.0;
 
-        // Process request
-        let (token_auth, token_refresh) =
-            self.controller_user.add(req.username, req.password).await?;
+        let (token_auth, token_refresh) = self
+            .controller_user
+            .add(request.username, request.password)
+            .await?;
 
-        let res = AddResponse {
+        let res = UserResponsePost {
             token_auth,
             token_refresh,
         };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
+    }
+
+    /// Get information about a given user.
+    /// note: This endpoint requires a valid auth token.
+    #[oai(path = "/:username", method = "get")]
+    async fn user_info(
+        &self,
+        _user: middleware::JwtAuthorization,
+        _username: Path<String>,
+    ) -> Result<Json<UserResponseGet>, super::Error> {
+        Err(super::Error::NotImplemented)
+    }
+
+    /// Delete a given user.
+    /// note: This endpoint requires a valid auth token.
+    #[oai(path = "/:username", method = "delete")]
+    async fn user_delete(
+        &self,
+        _user: middleware::JwtAuthorization,
+        _username: Path<String>,
+    ) -> Result<(), super::Error> {
+        Err(super::Error::NotImplemented)
     }
 }
