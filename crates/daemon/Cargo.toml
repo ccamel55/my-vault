@@ -5,24 +5,19 @@ edition.workspace = true
 
 [dependencies]
 shared-core = { path = "../shared-core" }
-shared-service = { path = "../shared-service" }
 
 anyhow = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true }
 dirs = { workspace = true }
 lazy_static = { workspace = true }
-prost = { workspace = true }
+poem = { workspace = true }
+poem-openapi = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
-tonic = { workspace = true }
-tonic-health = { workspace = true }
-tonic-middleware = { workspace = true }
-tonic-prost = { workspace = true }
-tonic-reflection = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 validator = { workspace = true }

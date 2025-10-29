@@ -1,61 +1,64 @@
+use crate::controller;
+
+use poem::EndpointExt;
+use std::sync::Arc;
+
 mod client;
 mod user;
 
-use crate::controller;
+/// Convert from controller error to status.
+impl From<controller::ControllerError> for poem::Error {
+    fn from(value: controller::ControllerError) -> Self {
+        match value {
+            controller::ControllerError::AlreadyExists(x) => {
+                Self::from_string(x, poem::http::StatusCode::CONFLICT)
+            }
+            controller::ControllerError::PermissionDenied(x) => {
+                Self::from_string(x, poem::http::StatusCode::FORBIDDEN)
+            }
+            controller::ControllerError::Internal(x) => {
+                Self::from_string(x, poem::http::StatusCode::INTERNAL_SERVER_ERROR)
+            }
+            controller::ControllerError::NotFound(x) => {
+                Self::from_string(x, poem::http::StatusCode::NOT_FOUND)
+            }
+        }
+    }
+}
 
-use shared_service::{client_server, user_server};
-use std::sync::Arc;
-
-/// Create gRPC service router with all our services.
+/// Create services
 pub async fn create_services(
+    disable_ui: bool,
     config: Arc<crate::ConfigManager>,
     client: Arc<crate::DaemonClient>,
-) -> anyhow::Result<tonic::service::Routes> {
-    let mw_auth = crate::middleware::Authentication::new(client.clone())?;
-
+) -> anyhow::Result<impl poem::Endpoint> {
     let controller_client = controller::ControllerClient::new(client.clone());
     let controller_user = controller::ControllerUser::new(config.clone(), client.clone());
 
     let service_client = client::ClientService::new(controller_client)?;
     let service_user = user::UserService::new(controller_user)?;
 
-    let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(shared_service::FILE_DESCRIPTOR_SET)
-        .build_v1alpha()?;
+    // Create API endpoints
+    const SERVICE_PATH_PREFIX: &str = "/api/v1";
 
-    let (health_reporter, health_service) = tonic_health::server::health_reporter();
+    let services = (service_client, service_user);
+    let services = poem_openapi::OpenApiService::new(services, "My Vault", "0.1.0")
+        .url_prefix(SERVICE_PATH_PREFIX);
 
-    health_reporter
-        .set_serving::<client_server::ClientServer<client::ClientService>>()
-        .await;
+    // Create a router which will handle the correct services
+    let route = if disable_ui {
+        poem::Route::new()
+            .nest("/api/v1", services)
+            .data(client.clone())
+    } else {
+        // Create UI endpoint
+        let docs_ui = services.scalar();
 
-    health_reporter
-        .set_serving::<user_server::UserServer<user::UserService>>()
-        .await;
+        poem::Route::new()
+            .nest("/api/v1", services)
+            .nest("/", docs_ui)
+            .data(client.clone())
+    };
 
-    let routes = tonic::service::RoutesBuilder::default()
-        .add_service(reflection_service)
-        .add_service(health_service)
-        .add_service(user_server::UserServer::new(service_user))
-        .add_service(tonic_middleware::InterceptorFor::new(
-            client_server::ClientServer::new(service_client),
-            mw_auth.clone(),
-        ))
-        .to_owned()
-        .routes();
-
-    Ok(routes)
-}
-
-impl From<controller::ControllerError> for tonic::Status {
-    fn from(value: controller::ControllerError) -> Self {
-        match value {
-            controller::ControllerError::Cancelled(x) => Self::cancelled(x),
-            controller::ControllerError::Unknown(x) => Self::unknown(x),
-            controller::ControllerError::AlreadyExists(x) => Self::already_exists(x),
-            controller::ControllerError::PermissionDenied(x) => Self::permission_denied(x),
-            controller::ControllerError::Internal(x) => Self::internal(x),
-            controller::ControllerError::NotFound(x) => Self::not_found(x),
-        }
-    }
+    Ok(route)
 }
