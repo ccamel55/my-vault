@@ -1,7 +1,12 @@
 mod client;
+mod collection;
+mod secret;
+mod source;
 mod user;
 
 pub use client::*;
+pub use collection::*;
+pub use secret::*;
 pub use user::*;
 
 /// Error which represents status code.
@@ -27,4 +32,8 @@ pub enum ControllerError {
     /// `tonic::status::Code::Internal`
     #[error("{0}")]
     Internal(String),
+
+    /// `tonic::status::Code::NotFound`
+    #[error("{0}")]
+    NotFound(String),
 }

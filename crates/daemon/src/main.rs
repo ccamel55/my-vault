@@ -1,9 +1,10 @@
 mod client;
 mod config;
 mod constants;
-mod database;
+mod controller;
 mod middleware;
 mod service;
+mod view;
 
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
