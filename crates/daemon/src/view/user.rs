@@ -72,10 +72,10 @@ mod tests {
 
         assert!(res_username_to_short.is_err());
 
-        let res_invalid_email_err = res_username_to_short.unwrap_err();
-        let res_invalid_email_err = res_invalid_email_err.field_errors();
+        let res_username_to_short = res_username_to_short.unwrap_err();
+        let res_username_to_short = res_username_to_short.field_errors();
 
-        assert!(res_invalid_email_err.contains_key("username"));
+        assert!(res_username_to_short.contains_key("username"));
 
         let res_username_to_long = User::new(
             "a".repeat(256),
