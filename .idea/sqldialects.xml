@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/crates/daemon/migrations/20251002103552_create-database.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/crates/daemon/migrations/20251029080237_soft-delete-users.sql" dialect="SQLite" />
     <file url="PROJECT" dialect="SQLite" />
   </component>
 </project>

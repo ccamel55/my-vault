@@ -15,11 +15,8 @@ pub struct ControllerUser {
 }
 
 impl database::TableName for ControllerUser {
-    const NAME: &'static str = "users";
+    const NAME: &'static str = "users_active";
 }
-
-// TODO: add "soft delete" for users
-// TODO: add view for non deleted users and update query to look at view
 
 impl ControllerUser {
     pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {

@@ -12,7 +12,9 @@ pub struct User {
     pub argon2_iters: u32,
     pub argon2_memory_mb: u32,
     pub argon2_parallelism: u32,
-    pub last_updated: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<chrono::NaiveDateTime>,
+    pub updated_at: Option<chrono::NaiveDateTime>,
+    pub deleted: Option<bool>,
 }
 
 impl User {
@@ -37,7 +39,9 @@ impl User {
             argon2_iters,
             argon2_memory_mb,
             argon2_parallelism,
-            last_updated: None,
+            created_at: None,
+            updated_at: None,
+            deleted: None,
         };
 
         res.validate()?;
