@@ -32,6 +32,10 @@ struct Args {
     /// Use TCP socket
     #[arg(short, long, env = "MY_VAULT_TCP_SOCKET")]
     tcp_socket: bool,
+
+    /// Disable OpenAPI UI
+    #[arg(short, long, env = "MY_VAULT_DISABLE_UI")]
+    disable_ui: bool,
 }
 
 //noinspection DuplicatedCode
@@ -65,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
         close_fn = None;
 
         let tcp = poem::listener::TcpListener::bind(&tcp_address);
-        let app = service::create_services(false, config.clone(), client).await?;
+        let app = service::create_services(args.disable_ui, config.clone(), client).await?;
 
         poem::Server::new(tcp)
             .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
