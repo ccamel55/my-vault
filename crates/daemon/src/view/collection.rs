@@ -39,10 +39,10 @@ mod tests {
 
         assert!(res_username_to_short.is_err());
 
-        let res_invalid_email_err = res_username_to_short.unwrap_err();
-        let res_invalid_email_err = res_invalid_email_err.field_errors();
+        let res_invalid_username_err = res_username_to_short.unwrap_err();
+        let res_invalid_username_err = res_invalid_username_err.field_errors();
 
-        assert!(res_invalid_email_err.contains_key("name"));
+        assert!(res_invalid_username_err.contains_key("name"));
 
         let res_username_to_long = Collection::new("a".repeat(256));
 

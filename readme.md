@@ -17,11 +17,7 @@ under the same service.
 
 The connector is designed to be hosted and used in a trusted communication network. 
 The currently supported methods being; private network using TCP or localhost using
-unix sockets. 
-
-#### Example: Host and Guest VM 
-
-#### Example: 
+unix sockets.
 
 ### Why a connector service?
 
