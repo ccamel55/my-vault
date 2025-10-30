@@ -1,4 +1,5 @@
 use crate::controller;
+use crate::error;
 
 use poem::EndpointExt;
 use std::sync::Arc;
@@ -7,19 +8,19 @@ mod client;
 mod user;
 
 /// Convert from controller error to status.
-impl From<controller::ControllerError> for poem::Error {
-    fn from(value: controller::ControllerError) -> Self {
+impl From<error::ServiceError> for poem::Error {
+    fn from(value: error::ServiceError) -> Self {
         match value {
-            controller::ControllerError::AlreadyExists(x) => {
+            error::ServiceError::AlreadyExists(x) => {
                 Self::from_string(x, poem::http::StatusCode::CONFLICT)
             }
-            controller::ControllerError::PermissionDenied(x) => {
+            error::ServiceError::PermissionDenied(x) => {
                 Self::from_string(x, poem::http::StatusCode::FORBIDDEN)
             }
-            controller::ControllerError::Internal(x) => {
+            error::ServiceError::Internal(x) => {
                 Self::from_string(x, poem::http::StatusCode::INTERNAL_SERVER_ERROR)
             }
-            controller::ControllerError::NotFound(x) => {
+            error::ServiceError::NotFound(x) => {
                 Self::from_string(x, poem::http::StatusCode::NOT_FOUND)
             }
         }

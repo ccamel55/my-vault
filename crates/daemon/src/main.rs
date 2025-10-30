@@ -2,6 +2,7 @@ mod client;
 mod config;
 mod constants;
 mod controller;
+mod error;
 mod middleware;
 mod schema;
 mod service;
