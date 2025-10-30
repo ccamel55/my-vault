@@ -1,6 +1,6 @@
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
-use crate::view;
+use crate::schema;
 
 use shared_core::crypt::JwtFactoryMetadata;
 use shared_core::{crypt, database, rng};
@@ -50,7 +50,7 @@ impl ControllerUser {
         // Fetch user but only to get argon 2 parameters.
         let filter = vec![("username", username.to_string())];
         let user =
-            database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
+            database::read::<Self, schema::User>(self.client.get_database().get_pool(), filter)
                 .await
                 .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
@@ -106,7 +106,7 @@ impl ControllerUser {
 
         let filter = vec![("uuid", uuid.hyphenated().to_string())];
         let user =
-            database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
+            database::read::<Self, schema::User>(self.client.get_database().get_pool(), filter)
                 .await
                 .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
@@ -149,7 +149,7 @@ impl ControllerUser {
         .await
         .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 
-        let data = view::User::new(
+        let data = schema::User::new(
             username,
             password_hash,
             salt,
@@ -161,7 +161,7 @@ impl ControllerUser {
 
         // Try insert user into database and return auth tokens if successful.
         let user =
-            database::create::<Self, view::User>(self.client.get_database().get_pool(), data)
+            database::create::<Self, schema::User>(self.client.get_database().get_pool(), data)
                 .await
                 .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
 

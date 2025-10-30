@@ -3,8 +3,8 @@ mod config;
 mod constants;
 mod controller;
 mod middleware;
+mod schema;
 mod service;
-mod view;
 
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
