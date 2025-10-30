@@ -51,6 +51,7 @@ impl ModelUser {
 #[cfg(test)]
 mod tests {
     use crate::model::ModelUser;
+    use crate::schema::User;
 
     use sqlx::sqlite;
 
@@ -61,6 +62,27 @@ mod tests {
 
         assert!(result_1.is_ok());
         assert_eq!(result_1.unwrap(), false);
+
+        // Add a user and then check again.
+        let user = User {
+            username: "jeff".into(),
+            ..User::default()
+        };
+        let result_add = ModelUser::add_user(&pool, user).await;
+
+        assert!(result_add.is_ok());
+
+        // Should exist now
+        let result_2 = ModelUser::does_user_exist(&pool, "jeff".into()).await;
+
+        assert!(result_2.is_ok());
+        assert_eq!(result_2.unwrap(), true);
+
+        // Make sure if we query a different user it doesn't exist
+        let result_3 = ModelUser::does_user_exist(&pool, "bob".into()).await;
+
+        assert!(result_3.is_ok());
+        assert_eq!(result_3.unwrap(), false);
 
         Ok(())
     }
