@@ -51,6 +51,7 @@ impl ModelUser {
 #[cfg(test)]
 mod tests {
     use crate::model::ModelUser;
+    use crate::schema::User;
 
     use sqlx::sqlite;
 
@@ -61,6 +62,70 @@ mod tests {
 
         assert!(result_1.is_ok());
         assert_eq!(result_1.unwrap(), false);
+
+        // Add a user and then check again.
+        let user = User {
+            username: "jeff".into(),
+            ..User::default()
+        };
+        let result_add = ModelUser::add_user(&pool, user).await;
+
+        assert!(result_add.is_ok());
+
+        // Should exist now
+        let result_2 = ModelUser::does_user_exist(&pool, "jeff".into()).await;
+
+        assert!(result_2.is_ok());
+        assert_eq!(result_2.unwrap(), true);
+
+        // Make sure if we query a different user it doesn't exist
+        let result_3 = ModelUser::does_user_exist(&pool, "bob".into()).await;
+
+        assert!(result_3.is_ok());
+        assert_eq!(result_3.unwrap(), false);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn get_user_from_username(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
+        let result_1 = ModelUser::get_user_from_username(&pool, "jeff".into()).await;
+
+        assert!(result_1.is_err());
+
+        let user = User {
+            username: "jeff".into(),
+            ..User::default()
+        };
+        let result_add = ModelUser::add_user(&pool, user).await;
+
+        assert!(result_add.is_ok());
+
+        let result_2 = ModelUser::get_user_from_username(&pool, result_add.unwrap().username).await;
+
+        assert!(result_2.is_ok());
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn get_user_from_uuid(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
+        let result_1 = ModelUser::get_user_from_username(&pool, "jeff".into()).await;
+
+        assert!(result_1.is_err());
+
+        let user = User {
+            username: "jeff".into(),
+            ..User::default()
+        };
+        let result_add = ModelUser::add_user(&pool, user).await;
+
+        assert!(result_add.is_ok());
+
+        let result_2 =
+            ModelUser::get_user_from_uuid(&pool, result_add.unwrap().uuid.into_uuid()).await;
+
+        assert!(result_2.is_ok());
 
         Ok(())
     }
