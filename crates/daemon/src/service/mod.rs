@@ -28,7 +28,7 @@ impl From<controller::ControllerError> for poem::Error {
 
 /// Create services
 pub async fn create_services(
-    disable_ui: bool,
+    enable_ui: bool,
     config: Arc<crate::ConfigManager>,
     client: Arc<crate::DaemonClient>,
 ) -> anyhow::Result<impl poem::Endpoint> {
@@ -46,19 +46,14 @@ pub async fn create_services(
         .url_prefix(SERVICE_PATH_PREFIX);
 
     // Create a router which will handle the correct services
-    let route = if disable_ui {
-        poem::Route::new()
-            .nest("/api/v1", services)
-            .data(client.clone())
+    let route = if enable_ui {
+        // Create route with ui endpoint
+        poem::Route::new().nest("/", services.scalar())
     } else {
-        // Create UI endpoint
-        let docs_ui = services.scalar();
-
         poem::Route::new()
-            .nest("/api/v1", services)
-            .nest("/", docs_ui)
-            .data(client.clone())
-    };
+    }
+    .nest(SERVICE_PATH_PREFIX, services)
+    .data(client.clone());
 
     Ok(route)
 }

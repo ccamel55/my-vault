@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
         close_fn = None;
 
         let tcp = poem::listener::TcpListener::bind(&tcp_address);
-        let app = service::create_services(args.disable_ui, config.clone(), client).await?;
+        let app = service::create_services(!args.disable_ui, config.clone(), client).await?;
 
         poem::Server::new(tcp)
             .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
@@ -107,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
             });
 
             let uds = poem::listener::UnixListener::bind(&uds_socket_path);
-            let app = service::create_services(true, config.clone(), client).await?;
+            let app = service::create_services(false, config.clone(), client).await?;
 
             poem::Server::new(uds)
                 .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
