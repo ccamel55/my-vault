@@ -47,3 +47,21 @@ impl ModelUser {
         database::create::<Self, schema::User>(pool, user).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::model::ModelUser;
+
+    use sqlx::sqlite;
+
+    #[sqlx::test]
+    async fn does_user_exist(pool: sqlite::SqlitePool) -> sqlx::Result<()> {
+        // Check non-existing user
+        let result_1 = ModelUser::does_user_exist(&pool, "jeff".into()).await;
+
+        assert!(result_1.is_ok());
+        assert_eq!(result_1.unwrap(), false);
+
+        Ok(())
+    }
+}

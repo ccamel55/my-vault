@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use validator::Validate;
 
 /// Source type
@@ -47,6 +48,21 @@ pub struct Source {
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
+impl Default for Source {
+    fn default() -> Self {
+        Self {
+            uuid: uuid::fmt::Hyphenated::from_str("7e5d7d80-d854-47bc-9b8b-c26755886f2a").unwrap(),
+            name: "example-source".to_string(),
+            description: Some("default example source".to_string()),
+            source_type: SourceType::Unknown as u32,
+            source_auth: None,
+            source_auth_type: SourceAuthType::None as u32,
+            created_at: None,
+            updated_at: None,
+        }
+    }
+}
+
 impl Source {
     pub fn new<A>(
         name: A,
@@ -65,8 +81,7 @@ impl Source {
             source_type,
             source_auth,
             source_auth_type,
-            created_at: None,
-            updated_at: None,
+            ..Self::default()
         };
 
         res.validate()?;
