@@ -6,14 +6,12 @@ use poem_openapi::{Object, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct UserService {
-    controller_user: controller::ControllerUser,
+    controller: controller::ControllerUser,
 }
 
 impl UserService {
-    pub fn new(controller_user: controller::ControllerUser) -> anyhow::Result<Self> {
-        Ok(Self {
-            controller_user: controller_user.clone(),
-        })
+    pub fn new(controller: controller::ControllerUser) -> Self {
+        Self { controller }
     }
 }
 
@@ -75,7 +73,7 @@ impl UserService {
         let request = request.0;
 
         let (token_auth, token_refresh) = self
-            .controller_user
+            .controller
             .auth(request.username, request.password)
             .await?;
 
@@ -95,7 +93,7 @@ impl UserService {
     ) -> poem::Result<Json<RefreshResponsePost>> {
         let request = request.0;
 
-        let token_auth = self.controller_user.refresh(request.token_refresh).await?;
+        let token_auth = self.controller.refresh(request.token_refresh).await?;
         let res = RefreshResponsePost { token_auth };
 
         Ok(Json(res))
@@ -110,7 +108,7 @@ impl UserService {
         let request = request.0;
 
         let (token_auth, token_refresh) = self
-            .controller_user
+            .controller
             .add(request.username, request.password)
             .await?;
 

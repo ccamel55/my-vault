@@ -5,14 +5,12 @@ use poem_openapi::{Object, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct ClientService {
-    controller_client: controller::ControllerClient,
+    controller: controller::ControllerClient,
 }
 
 impl ClientService {
-    pub fn new(controller_client: controller::ControllerClient) -> anyhow::Result<Self> {
-        Ok(Self {
-            controller_client: controller_client.clone(),
-        })
+    pub fn new(controller: controller::ControllerClient) -> Self {
+        Self { controller }
     }
 }
 
@@ -26,16 +24,12 @@ struct InfoResponseGet {
 impl ClientService {
     /// Client Info
     #[oai(path = "/info", method = "get")]
-    async fn info_get(
+    async fn client_info(
         &self,
         _user: middleware::JwtAuthorization,
     ) -> poem::Result<Json<InfoResponseGet>> {
-        let time_start = *self.controller_client.client.get_time_started();
-        let time_elapsed = chrono::Utc::now() - time_start;
-
-        let res = InfoResponseGet {
-            uptime_seconds: time_elapsed.num_seconds() as u64,
-        };
+        let uptime_seconds = self.controller.uptime_seconds()?;
+        let res = InfoResponseGet { uptime_seconds };
 
         Ok(Json(res))
     }

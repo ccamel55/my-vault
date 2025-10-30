@@ -1,8 +1,5 @@
-use crate::client::DaemonClient;
-use std::str::FromStr;
-
 use shared_core::crypt;
-use std::sync::Arc;
+use std::str::FromStr;
 
 /// User info from authorization
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -27,12 +24,13 @@ async fn check_jwt(
 ) -> poem::Result<User> {
     // Poem's data is not zero cost.
     // If performance is bad we have to switch frameworks again...
-    let client: Arc<DaemonClient> = request.data().cloned().ok_or(poem::Error::from_status(
+    let data: &super::MiddlewareData = request.data().ok_or(poem::Error::from_status(
         poem::http::StatusCode::INTERNAL_SERVER_ERROR,
     ))?;
 
     // Make sure JWT is valid
-    let jwt_decode = client
+    let jwt_decode = data
+        .client
         .get_jwt_factory()
         .decode::<crypt::JwtClaimAccess>(&bearer.token)
         .map_err(|_| poem::Error::from_status(poem::http::StatusCode::UNAUTHORIZED))?;

@@ -1,10 +1,11 @@
-use crate::controller;
 use crate::error;
+use crate::{controller, middleware};
 
 use poem::EndpointExt;
 use std::sync::Arc;
 
 mod client;
+mod health;
 mod user;
 
 /// Convert from controller error to status.
@@ -36,25 +37,33 @@ pub async fn create_services(
     let controller_client = controller::ControllerClient::new(client.clone());
     let controller_user = controller::ControllerUser::new(config.clone(), client.clone());
 
-    let service_client = client::ClientService::new(controller_client)?;
-    let service_user = user::UserService::new(controller_user)?;
+    // Create data to be injected
+    let middleware_data = middleware::MiddlewareData::new(config, client);
 
     // Create API endpoints
     const SERVICE_PATH_PREFIX: &str = "/api/v1";
 
-    let services = (service_client, service_user);
-    let services = poem_openapi::OpenApiService::new(services, "My Vault", "0.1.0")
+    let services = (
+        health::HealthService::new(),
+        client::ClientService::new(controller_client),
+        user::UserService::new(controller_user),
+    );
+
+    let api = poem_openapi::OpenApiService::new(services, "My Vault", "0.1.0")
         .url_prefix(SERVICE_PATH_PREFIX);
 
     // Create a router which will handle the correct services
     let route = if enable_ui {
         // Create route with ui endpoint
-        poem::Route::new().nest("/", services.scalar())
+        poem::Route::new().nest("/", api.scalar())
     } else {
         poem::Route::new()
     }
-    .nest(SERVICE_PATH_PREFIX, services)
-    .data(client.clone());
+    .nest(
+        SERVICE_PATH_PREFIX,
+        api.with(middleware::SetDefaultHeader::new())
+            .with(poem::middleware::AddData::new(middleware_data)),
+    );
 
     Ok(route)
 }
