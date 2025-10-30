@@ -1,10 +1,9 @@
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
-use crate::error;
-use crate::schema;
+use crate::{error, model, schema};
 
 use shared_core::crypt::JwtFactoryMetadata;
-use shared_core::{crypt, database, rng};
+use shared_core::{crypt, rng};
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -15,10 +14,6 @@ pub struct ControllerUser {
     pub(crate) client: Arc<DaemonClient>,
 }
 
-impl database::TableName for ControllerUser {
-    const NAME: &'static str = "users_active";
-}
-
 impl ControllerUser {
     pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {
         Self { config, client }
@@ -27,10 +22,10 @@ impl ControllerUser {
     /// Checks if user with username exists
     pub async fn exists(&self, username: String) -> Result<bool, error::ServiceError> {
         // Filter by username
-        let filter = vec![("username", username)];
-        let result = database::exists::<Self>(self.client.get_database().get_pool(), filter)
-            .await
-            .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
+        let result =
+            model::ModelUser::does_user_exist(self.client.get_database().get_pool(), username)
+                .await
+                .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         Ok(result)
     }
@@ -49,11 +44,12 @@ impl ControllerUser {
         }
 
         // Fetch user but only to get argon 2 parameters.
-        let filter = vec![("username", username.to_string())];
-        let user =
-            database::read::<Self, schema::User>(self.client.get_database().get_pool(), filter)
-                .await
-                .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
+        let user = model::ModelUser::get_user_from_username(
+            self.client.get_database().get_pool(),
+            username,
+        )
+        .await
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Generate password hash based on current password.
         let salt = user.salt;
@@ -103,9 +99,8 @@ impl ControllerUser {
         let uuid = uuid::Uuid::from_str(&claim_refresh.sub)
             .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
-        let filter = vec![("uuid", uuid.hyphenated().to_string())];
         let user =
-            database::read::<Self, schema::User>(self.client.get_database().get_pool(), filter)
+            model::ModelUser::get_user_from_uuid(self.client.get_database().get_pool(), uuid)
                 .await
                 .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
@@ -159,10 +154,9 @@ impl ControllerUser {
         .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Try insert user into database and return auth tokens if successful.
-        let user =
-            database::create::<Self, schema::User>(self.client.get_database().get_pool(), data)
-                .await
-                .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
+        let user = model::ModelUser::add_user(self.client.get_database().get_pool(), data)
+            .await
+            .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         let jwt_factory = self.client.get_jwt_factory();
 

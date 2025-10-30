@@ -4,6 +4,7 @@ mod constants;
 mod controller;
 mod error;
 mod middleware;
+mod model;
 mod schema;
 mod service;
 
