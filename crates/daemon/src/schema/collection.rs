@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use validator::Validate;
 
 /// Collection row entry
@@ -7,6 +8,15 @@ pub struct Collection {
     pub uuid: uuid::fmt::Hyphenated,
     #[validate(length(min = 3, max = 255))]
     pub name: String,
+}
+
+impl Default for Collection {
+    fn default() -> Self {
+        Self {
+            uuid: uuid::fmt::Hyphenated::from_str("0b1e5b28-d01a-4419-af8c-2d582170bc7e").unwrap(),
+            name: "example-collection".to_string(),
+        }
+    }
 }
 
 impl Collection {

@@ -54,25 +54,6 @@ thread has some helpful information on how to set up the driver.
 
 - `jdbc:sqlite:{file:sqlite_db_file:}\?cipher=sqlcipher&legacy=4[&key={key:param:}]`
 
-## Requirements
-
-### Protobuf 
-
-The daemon uses protobuf to send messages between itself and clients. Both the protobuf compiler
-and Google common libs must be installed.
-
-For Fedora protobuf can be installed with the following commands:
-
-```shell
-sudo dnf install protobuf protobuf-devel
-```
-
-For MacOS protobuf can be installed with the following commands:
-
-```shell
-brew install dbuf protobuf 
-```
-
 ## Architecture  
 
 TODO
@@ -88,7 +69,6 @@ TODO
 ## Todo
 
 - docker compose build
-- add tests for tonic using mock https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs
 - make config only update don't re-write the whole file
 - swap anyhow to defined errors
 - add service integrations

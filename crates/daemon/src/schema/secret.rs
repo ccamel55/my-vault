@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use validator::Validate;
 
 /// Secret type
@@ -29,6 +30,19 @@ pub struct Secret {
     pub description: Option<String>,
     pub secret: String,
     pub secret_type: u32,
+}
+
+impl Default for Secret {
+    fn default() -> Self {
+        Self {
+            uuid: uuid::fmt::Hyphenated::from_str("ba36b45e-8ce4-490f-9f24-f7bf32b8d5b6").unwrap(),
+            name: "example-secret".to_string(),
+            key: None,
+            description: Some("some example secret".to_string()),
+            secret: "my_secret".to_string(),
+            secret_type: SecretType::Unknown as u32,
+        }
+    }
 }
 
 impl Secret {

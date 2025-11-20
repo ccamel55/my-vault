@@ -1,9 +1,9 @@
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
-use crate::view;
+use crate::{error, model, schema};
 
 use shared_core::crypt::JwtFactoryMetadata;
-use shared_core::{crypt, database, rng};
+use shared_core::{crypt, rng};
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -14,22 +14,18 @@ pub struct ControllerUser {
     pub(crate) client: Arc<DaemonClient>,
 }
 
-impl database::TableName for ControllerUser {
-    const NAME: &'static str = "users_active";
-}
-
 impl ControllerUser {
     pub fn new(config: Arc<ConfigManager>, client: Arc<DaemonClient>) -> Self {
         Self { config, client }
     }
 
     /// Checks if user with username exists
-    pub async fn exists(&self, username: String) -> Result<bool, super::ControllerError> {
+    pub async fn exists(&self, username: String) -> Result<bool, error::ServiceError> {
         // Filter by username
-        let filter = vec![("username", username)];
-        let result = database::exists::<Self>(self.client.get_database().get_pool(), filter)
-            .await
-            .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+        let result =
+            model::ModelUser::does_user_exist(self.client.get_database().get_pool(), username)
+                .await
+                .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         Ok(result)
     }
@@ -39,20 +35,21 @@ impl ControllerUser {
         &self,
         username: String,
         password: String,
-    ) -> Result<(String, String), super::ControllerError> {
+    ) -> Result<(String, String), error::ServiceError> {
         // Make sure that user with given username exists.
         if !self.exists(username.clone()).await? {
-            return Err(super::ControllerError::NotFound(
+            return Err(error::ServiceError::NotFound(
                 "could not find user, make sure username and password are correct".to_string(),
             ));
         }
 
         // Fetch user but only to get argon 2 parameters.
-        let filter = vec![("username", username.to_string())];
-        let user =
-            database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
-                .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+        let user = model::ModelUser::get_user_from_username(
+            self.client.get_database().get_pool(),
+            username,
+        )
+        .await
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Generate password hash based on current password.
         let salt = user.salt;
@@ -61,14 +58,14 @@ impl ControllerUser {
             user.argon2_memory_mb,
             user.argon2_parallelism,
         )
-        .map_err(|e| super::ControllerError::Internal(e.to_string()))?
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?
         .encode(password.as_bytes(), salt.as_bytes())
         .await
-        .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Check if passwords match.
         if password_hash != user.password_hash {
-            return Err(super::ControllerError::NotFound(
+            return Err(error::ServiceError::NotFound(
                 "could not find user, make sure username and password are correct".to_string(),
             ));
         }
@@ -90,25 +87,22 @@ impl ControllerUser {
     }
 
     /// Generate new auth token from refresh token.
-    pub async fn refresh(&self, token_refresh: String) -> Result<String, super::ControllerError> {
+    pub async fn refresh(&self, token_refresh: String) -> Result<String, error::ServiceError> {
         let jwt_factory = self.client.get_jwt_factory();
 
         // Make sure that current token is valid
         let claim_refresh = jwt_factory
             .decode::<crypt::JwtClaimRefresh>(&token_refresh)
-            .map_err(|_| {
-                super::ControllerError::PermissionDenied("invalid refresh token".into())
-            })?;
+            .map_err(|_| error::ServiceError::PermissionDenied("invalid refresh token".into()))?;
 
         // Fetch user based on uuid
         let uuid = uuid::Uuid::from_str(&claim_refresh.sub)
-            .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
+            .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
-        let filter = vec![("uuid", uuid.hyphenated().to_string())];
         let user =
-            database::read::<Self, view::User>(self.client.get_database().get_pool(), filter)
+            model::ModelUser::get_user_from_uuid(self.client.get_database().get_pool(), uuid)
                 .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+                .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Generate new auth token
         let token_auth = jwt_factory.encode(crypt::JwtClaimAccess::new(
@@ -125,11 +119,11 @@ impl ControllerUser {
         &self,
         username: String,
         password: String,
-    ) -> Result<(String, String), super::ControllerError> {
+    ) -> Result<(String, String), error::ServiceError> {
         // Make sure that user doesn't exist.
         // If there is a user with the same identifier error as each username is assumed to be unique.
         if self.exists(username.clone()).await? {
-            return Err(super::ControllerError::AlreadyExists(format!(
+            return Err(error::ServiceError::AlreadyExists(format!(
                 "user with username {} already exists",
                 &username
             )));
@@ -144,12 +138,12 @@ impl ControllerUser {
             config.argon2_memory_mb,
             config.argon2_parallelism,
         )
-        .map_err(|e| super::ControllerError::Internal(e.to_string()))?
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?
         .encode(password.as_bytes(), salt.as_bytes())
         .await
-        .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
-        let data = view::User::new(
+        let data = schema::User::new(
             username,
             password_hash,
             salt,
@@ -157,13 +151,12 @@ impl ControllerUser {
             config.argon2_memory_mb,
             config.argon2_parallelism,
         )
-        .map_err(|e| super::ControllerError::Internal(e.to_string()))?;
+        .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         // Try insert user into database and return auth tokens if successful.
-        let user =
-            database::create::<Self, view::User>(self.client.get_database().get_pool(), data)
-                .await
-                .map_err(|e| super::ControllerError::Unknown(e.to_string()))?;
+        let user = model::ModelUser::add_user(self.client.get_database().get_pool(), data)
+            .await
+            .map_err(|e| error::ServiceError::Internal(e.to_string()))?;
 
         let jwt_factory = self.client.get_jwt_factory();
 

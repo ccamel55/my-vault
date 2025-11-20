@@ -2,9 +2,11 @@ mod client;
 mod config;
 mod constants;
 mod controller;
+mod error;
 mod middleware;
+mod model;
+mod schema;
 mod service;
-mod view;
 
 use crate::client::DaemonClient;
 use crate::config::ConfigManager;
@@ -32,6 +34,10 @@ struct Args {
     /// Use TCP socket
     #[arg(short, long, env = "MY_VAULT_TCP_SOCKET")]
     tcp_socket: bool,
+
+    /// Disable OpenAPI UI
+    #[arg(short, long, env = "MY_VAULT_DISABLE_UI")]
+    disable_ui: bool,
 }
 
 //noinspection DuplicatedCode
@@ -64,15 +70,11 @@ async fn main() -> anyhow::Result<()> {
         // Tcp requires no cleanup
         close_fn = None;
 
-        // Create tcp listener stream
-        tracing::info!("tcp address: {}", &tcp_address);
+        let tcp = poem::listener::TcpListener::bind(&tcp_address);
+        let app = service::create_services(!args.disable_ui, config.clone(), client).await?;
 
-        let uds = tokio::net::TcpListener::bind(&tcp_address).await?;
-        let stream = tonic::codegen::tokio_stream::wrappers::TcpListenerStream::new(uds);
-
-        tonic::transport::Server::builder()
-            .add_routes(service::create_services(config.clone(), client).await?)
-            .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+        poem::Server::new(tcp)
+            .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
             .await?;
     } else {
         #[cfg(unix)]
@@ -106,15 +108,11 @@ async fn main() -> anyhow::Result<()> {
                 }
             });
 
-            // Create unix listener stream
-            tracing::info!("uds socket: {}", &uds_socket_path.display());
+            let uds = poem::listener::UnixListener::bind(&uds_socket_path);
+            let app = service::create_services(false, config.clone(), client).await?;
 
-            let uds = tokio::net::UnixListener::bind(&uds_socket_path)?;
-            let stream = tonic::codegen::tokio_stream::wrappers::UnixListenerStream::new(uds);
-
-            tonic::transport::Server::builder()
-                .add_routes(service::create_services(config.clone(), client).await?)
-                .serve_with_incoming_shutdown(stream, cancellation_token.cancelled())
+            poem::Server::new(uds)
+                .run_with_graceful_shutdown(app, cancellation_token.cancelled(), None)
                 .await?;
         }
 

@@ -1,67 +1,146 @@
-use crate::controller;
+use crate::{controller, middleware};
 
-use shared_service::{
-    AddRequest, AddResponse, AuthRequest, AuthResponse, RefreshRequest, RefreshResponse,
-    user_server,
-};
-use tonic::{Request, Response, Status};
+use poem_openapi::param::Path;
+use poem_openapi::payload::Json;
+use poem_openapi::{Object, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct UserService {
-    controller_user: controller::ControllerUser,
+    controller: controller::ControllerUser,
 }
 
 impl UserService {
-    pub fn new(controller_user: controller::ControllerUser) -> anyhow::Result<Self> {
-        Ok(Self {
-            controller_user: controller_user.clone(),
-        })
+    pub fn new(controller: controller::ControllerUser) -> Self {
+        Self { controller }
     }
 }
 
-#[tonic::async_trait]
-impl user_server::User for UserService {
-    async fn auth(&self, request: Request<AuthRequest>) -> Result<Response<AuthResponse>, Status> {
-        let req = request.into_inner();
+/// Login request - POST
+#[derive(Debug, Clone, Object)]
+struct LoginRequestPost {
+    username: String,
+    password: String,
+}
 
-        // Process request
+/// Login response - POST
+#[derive(Debug, Clone, Object)]
+struct LoginResponsePost {
+    token_auth: String,
+    token_refresh: String,
+}
+
+/// Refresh request - POST
+#[derive(Debug, Clone, Object)]
+struct RefreshRequestPost {
+    token_refresh: String,
+}
+
+/// Refresh response - POST
+#[derive(Debug, Clone, Object)]
+struct RefreshResponsePost {
+    token_auth: String,
+}
+
+/// User request - POST
+#[derive(Debug, Clone, Object)]
+struct UserRequestPost {
+    username: String,
+    password: String,
+}
+
+/// User response - POST
+#[derive(Debug, Clone, Object)]
+struct UserResponsePost {
+    token_auth: String,
+    token_refresh: String,
+}
+
+/// User response - GET
+#[derive(Debug, Clone, Object)]
+struct UserResponseGet {
+    uuid: uuid::Uuid,
+    name: String,
+}
+
+#[OpenApi(prefix_path = "/user")]
+impl UserService {
+    /// Login
+    #[oai(path = "/login", method = "post")]
+    async fn login(
+        &self,
+        request: Json<LoginRequestPost>,
+    ) -> poem::Result<Json<LoginResponsePost>> {
+        let request = request.0;
+
         let (token_auth, token_refresh) = self
-            .controller_user
-            .auth(req.username, req.password)
+            .controller
+            .auth(request.username, request.password)
             .await?;
 
-        let res = AuthResponse {
+        let res = LoginResponsePost {
             token_auth,
             token_refresh,
         };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
     }
 
+    /// Refresh
+    #[oai(path = "/refresh", method = "post")]
     async fn refresh(
         &self,
-        request: Request<RefreshRequest>,
-    ) -> Result<Response<RefreshResponse>, Status> {
-        let req = request.into_inner();
+        request: Json<RefreshRequestPost>,
+    ) -> poem::Result<Json<RefreshResponsePost>> {
+        let request = request.0;
 
-        let token_auth = self.controller_user.refresh(req.token_refresh).await?;
-        let res = RefreshResponse { token_auth };
+        let token_auth = self.controller.refresh(request.token_refresh).await?;
+        let res = RefreshResponsePost { token_auth };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
     }
 
-    async fn add(&self, request: Request<AddRequest>) -> Result<Response<AddResponse>, Status> {
-        let req = request.into_inner();
+    /// Register New user
+    #[oai(path = "/", method = "post")]
+    async fn user_create(
+        &self,
+        request: Json<UserRequestPost>,
+    ) -> poem::Result<Json<UserResponsePost>> {
+        let request = request.0;
 
-        // Process request
-        let (token_auth, token_refresh) =
-            self.controller_user.add(req.username, req.password).await?;
+        let (token_auth, token_refresh) = self
+            .controller
+            .add(request.username, request.password)
+            .await?;
 
-        let res = AddResponse {
+        let res = UserResponsePost {
             token_auth,
             token_refresh,
         };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
+    }
+
+    /// Existing User Info
+    #[oai(path = "/:username", method = "get")]
+    async fn user_info(
+        &self,
+        _user: middleware::JwtAuthorization,
+        _username: Path<String>,
+    ) -> poem::Result<Json<UserResponseGet>> {
+        Err(poem::Error::from_status(
+            poem::http::StatusCode::NOT_IMPLEMENTED,
+        ))
+    }
+
+    /// Delete User
+    #[oai(path = "/:username", method = "delete")]
+    async fn user_delete(
+        &self,
+        _user: middleware::JwtAuthorization,
+        _username: Path<String>,
+    ) -> poem::Result<()> {
+        Err(poem::Error::from_status(
+            poem::http::StatusCode::NOT_IMPLEMENTED,
+        ))
     }
 }

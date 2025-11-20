@@ -1,11 +1,20 @@
-mod authentication;
+mod authorization;
+mod set_header;
 
-use shared_core::crypt;
+use std::sync::Arc;
 
-pub use authentication::*;
+pub use authorization::*;
+pub use set_header::*;
 
-#[derive(Debug, Default, Clone)]
-pub struct RequestExtension {
-    // If a JWT is valid then it will be passed through to the request
-    pub jwt_claim_access: Option<crypt::JwtClaimAccess>,
+/// Data being passed to all middleware
+#[derive(Debug, Clone)]
+pub struct MiddlewareData {
+    pub(crate) config: Arc<crate::ConfigManager>,
+    pub(crate) client: Arc<crate::DaemonClient>,
+}
+
+impl MiddlewareData {
+    pub fn new(config: Arc<crate::ConfigManager>, client: Arc<crate::DaemonClient>) -> Self {
+        Self { config, client }
+    }
 }

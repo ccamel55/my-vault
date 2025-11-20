@@ -1,61 +1,69 @@
-mod client;
-mod user;
+use crate::error;
+use crate::{controller, middleware};
 
-use crate::controller;
-
-use shared_service::{client_server, user_server};
+use poem::EndpointExt;
 use std::sync::Arc;
 
-/// Create gRPC service router with all our services.
+mod client;
+mod health;
+mod user;
+
+/// Convert from controller error to status.
+impl From<error::ServiceError> for poem::Error {
+    fn from(value: error::ServiceError) -> Self {
+        match value {
+            error::ServiceError::AlreadyExists(x) => {
+                Self::from_string(x, poem::http::StatusCode::CONFLICT)
+            }
+            error::ServiceError::PermissionDenied(x) => {
+                Self::from_string(x, poem::http::StatusCode::FORBIDDEN)
+            }
+            error::ServiceError::Internal(x) => {
+                Self::from_string(x, poem::http::StatusCode::INTERNAL_SERVER_ERROR)
+            }
+            error::ServiceError::NotFound(x) => {
+                Self::from_string(x, poem::http::StatusCode::NOT_FOUND)
+            }
+        }
+    }
+}
+
+/// Create services
 pub async fn create_services(
+    enable_ui: bool,
     config: Arc<crate::ConfigManager>,
     client: Arc<crate::DaemonClient>,
-) -> anyhow::Result<tonic::service::Routes> {
-    let mw_auth = crate::middleware::Authentication::new(client.clone())?;
-
+) -> anyhow::Result<impl poem::Endpoint> {
     let controller_client = controller::ControllerClient::new(client.clone());
     let controller_user = controller::ControllerUser::new(config.clone(), client.clone());
 
-    let service_client = client::ClientService::new(controller_client)?;
-    let service_user = user::UserService::new(controller_user)?;
+    // Create data to be injected
+    let middleware_data = middleware::MiddlewareData::new(config, client);
 
-    let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(shared_service::FILE_DESCRIPTOR_SET)
-        .build_v1alpha()?;
+    // Create API endpoints
+    const SERVICE_PATH_PREFIX: &str = "/api/v1";
 
-    let (health_reporter, health_service) = tonic_health::server::health_reporter();
+    let services = (
+        health::HealthService::new(),
+        client::ClientService::new(controller_client),
+        user::UserService::new(controller_user),
+    );
 
-    health_reporter
-        .set_serving::<client_server::ClientServer<client::ClientService>>()
-        .await;
+    let api = poem_openapi::OpenApiService::new(services, "My Vault", "0.1.0")
+        .url_prefix(SERVICE_PATH_PREFIX);
 
-    health_reporter
-        .set_serving::<user_server::UserServer<user::UserService>>()
-        .await;
-
-    let routes = tonic::service::RoutesBuilder::default()
-        .add_service(reflection_service)
-        .add_service(health_service)
-        .add_service(user_server::UserServer::new(service_user))
-        .add_service(tonic_middleware::InterceptorFor::new(
-            client_server::ClientServer::new(service_client),
-            mw_auth.clone(),
-        ))
-        .to_owned()
-        .routes();
-
-    Ok(routes)
-}
-
-impl From<controller::ControllerError> for tonic::Status {
-    fn from(value: controller::ControllerError) -> Self {
-        match value {
-            controller::ControllerError::Cancelled(x) => Self::cancelled(x),
-            controller::ControllerError::Unknown(x) => Self::unknown(x),
-            controller::ControllerError::AlreadyExists(x) => Self::already_exists(x),
-            controller::ControllerError::PermissionDenied(x) => Self::permission_denied(x),
-            controller::ControllerError::Internal(x) => Self::internal(x),
-            controller::ControllerError::NotFound(x) => Self::not_found(x),
-        }
+    // Create a router which will handle the correct services
+    let route = if enable_ui {
+        // Create route with ui endpoint
+        poem::Route::new().nest("/", api.scalar())
+    } else {
+        poem::Route::new()
     }
+    .nest(
+        SERVICE_PATH_PREFIX,
+        api.with(middleware::SetDefaultHeader::new())
+            .with(poem::middleware::AddData::new(middleware_data)),
+    );
+
+    Ok(route)
 }

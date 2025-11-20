@@ -1,32 +1,36 @@
-use crate::controller;
+use crate::{controller, middleware};
 
-use shared_service::{InfoResponse, client_server};
-use tonic::{Request, Response, Status};
+use poem_openapi::payload::Json;
+use poem_openapi::{Object, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct ClientService {
-    controller_client: controller::ControllerClient,
+    controller: controller::ControllerClient,
 }
 
 impl ClientService {
-    pub fn new(controller_client: controller::ControllerClient) -> anyhow::Result<Self> {
-        Ok(Self {
-            controller_client: controller_client.clone(),
-        })
+    pub fn new(controller: controller::ControllerClient) -> Self {
+        Self { controller }
     }
 }
 
-#[tonic::async_trait]
-impl client_server::Client for ClientService {
-    #[tracing::instrument]
-    async fn info(&self, _request: Request<()>) -> Result<Response<InfoResponse>, Status> {
-        let time_start = *self.controller_client.client.get_time_started();
-        let time_elapsed = chrono::Utc::now() - time_start;
+/// Info response - GET
+#[derive(Debug, Clone, Object)]
+struct InfoResponseGet {
+    uptime_seconds: u64,
+}
 
-        let res = InfoResponse {
-            uptime_seconds: time_elapsed.num_seconds(),
-        };
+#[OpenApi(prefix_path = "/client")]
+impl ClientService {
+    /// Client Info
+    #[oai(path = "/info", method = "get")]
+    async fn client_info(
+        &self,
+        _user: middleware::JwtAuthorization,
+    ) -> poem::Result<Json<InfoResponseGet>> {
+        let uptime_seconds = self.controller.uptime_seconds()?;
+        let res = InfoResponseGet { uptime_seconds };
 
-        Ok(Response::new(res))
+        Ok(Json(res))
     }
 }

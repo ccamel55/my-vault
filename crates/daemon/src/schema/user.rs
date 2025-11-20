@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use validator::Validate;
 
 /// User row entry
@@ -15,6 +16,23 @@ pub struct User {
     pub created_at: Option<chrono::NaiveDateTime>,
     pub updated_at: Option<chrono::NaiveDateTime>,
     pub deleted: Option<bool>,
+}
+
+impl Default for User {
+    fn default() -> Self {
+        Self {
+            uuid: uuid::fmt::Hyphenated::from_str("56d7f689-68b0-4473-8336-6678a5d4788d").unwrap(),
+            username: "demo".to_string(),
+            password_hash: "test123".to_string(),
+            salt: "1".repeat(16),
+            argon2_iters: 2,
+            argon2_memory_mb: 32,
+            argon2_parallelism: 2,
+            created_at: None,
+            updated_at: None,
+            deleted: None,
+        }
+    }
 }
 
 impl User {
@@ -39,9 +57,7 @@ impl User {
             argon2_iters,
             argon2_memory_mb,
             argon2_parallelism,
-            created_at: None,
-            updated_at: None,
-            deleted: None,
+            ..Self::default()
         };
 
         res.validate()?;
